@@ -1,0 +1,143 @@
+
+Parameters:
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+  KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+
+  AMI:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+  TargetGroupARNs:
+    Type: CommaDelimitedList
+
+Resources:
+  #
+  # IAM Role
+  #
+  ExampleInstanceRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: example-ec2-role
+      Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+      Policies: 
+        - PolicyName: dynamodb-query
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'dynamodb:Query'
+                  - 'dynamodb:Scan'
+                Resource: '*'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # IAM Instance Profile
+  #
+  ExampleInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    DependsOn: ExampleInstanceRole
+    Properties: 
+      InstanceProfileName: example-ec2-instance-profile
+      Path: /
+      Roles: 
+        - example-ec2-role
+
+  #
+  # LaunchTemplate
+  #
+  ExampleLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties: 
+      LaunchTemplateName: example-lt
+      LaunchTemplateData: 
+        BlockDeviceMappings: 
+          - DeviceName: /dev/xvda
+            Ebs: 
+              DeleteOnTermination: true
+              VolumeType: gp3
+              VolumeSize: 10
+              Iops: 3000
+              Throughput: 125
+              Encrypted: true
+              # KmsKeyId: String
+        IamInstanceProfile:
+          Arn: !GetAtt ExampleInstanceProfile.Arn
+          # Name: String
+        ImageId: !Ref AMI
+        InstanceInitiatedShutdownBehavior: terminate # stop , terminate
+        InstanceType: t3.small
+        KeyName: !Ref KeyPair
+        # Monitoring: 
+        SecurityGroupIds: 
+          - !Ref SecurityGroup
+        TagSpecifications: 
+          - ResourceType: instance # instance, volume
+            Tags: 
+            - Key: Name
+              Value: example-ec2
+          - ResourceType: volume # instance, volume
+            Tags: 
+            - Key: Name
+              Value: example-ec2
+        UserData:
+          Fn::Base64:
+            !Sub |
+              #!/bin/bash
+              yum install -y httpd
+              cat << EOF > /var/www/html/index.html
+              <h1>The example</h1>
+              <p>This is test page for provisioning ec2 instance</p>
+              EOF
+              systemctl enable httpd.service
+              systemctl restart httpd.service
+      TagSpecifications: 
+        - ResourceType: launch-template
+          Tags: 
+          - Key: Name
+            Value: example-lt
+
+  #
+  # Auto Scaling Group
+  #
+  ExampleAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties: 
+      AutoScalingGroupName: example-asg
+      # CapacityRebalance: Boolean
+      Cooldown: '120'
+      DesiredCapacityType: units # units , vcpu , memory-mib
+      DesiredCapacity: '2'
+      MinSize: '2'
+      MaxSize: '20'
+      HealthCheckGracePeriod: 60
+      HealthCheckType: ELB # EC2 , ELB
+      LaunchTemplate: 
+        LaunchTemplateId: !Ref ExampleLaunchTemplate
+        Version: !GetAtt ExampleLaunchTemplate.LatestVersionNumber # DefaultVersionNumber , LatestVersionNumber
+      Tags: 
+        - PropagateAtLaunch: true
+          Key: Name
+          Value: example-ec2
+      TargetGroupARNs: !Ref TargetGroupARNs
+      VPCZoneIdentifier: !Ref Subnets
