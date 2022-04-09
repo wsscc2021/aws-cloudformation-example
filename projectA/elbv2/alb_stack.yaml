@@ -1,0 +1,83 @@
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+  
+Resources:
+  #
+  # ELBv2 - Target Group
+  #
+  ExampleTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties: 
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 15
+      HealthCheckPath: /
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP # HTTP , HTTPS
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      IpAddressType: ipv4 # ipv4 , ipv6
+      Name: example-tg
+      Port: 80
+      Protocol: HTTP # HTTP , HTTPS
+      ProtocolVersion: HTTP1 # GRPC , HTTP1 , HTTP2
+      Tags: 
+        - Key: key01
+          Value: value01
+      TargetGroupAttributes: 
+        - Key: deregistration_delay.timeout_seconds
+          Value: 30
+      TargetType: instance # instance , ip , lambda , alb
+      VpcId: !Ref VpcId
+
+  #
+  # ELBv2 - Internet-facing ALB
+  #
+  ExampleInternetFacingALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Type: application
+      Name: example-ext-alb
+      IpAddressType: ipv4 # ipv4 , ipv6
+      LoadBalancerAttributes: 
+        - Key: routing.http2.enabled
+          Value: true
+      Scheme: internet-facing # internal , internet-facing
+      SecurityGroups: 
+        - !Ref SecurityGroup
+      Subnets: !Ref Subnets
+      Tags: 
+        - Key: key01
+          Value: value01
+      
+  #
+  # ELBv2 - Listener
+  #
+  ExampleInternetFacingALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties: 
+      # Certificates: 
+      #   - CertificateArn: String
+      # SslPolicy: String
+      DefaultActions: 
+        - Type: fixed-response
+          FixedResponseConfig: 
+            ContentType: text/plain
+            MessageBody: "Content not found"
+            StatusCode: '404'
+      LoadBalancerArn: !Ref ExampleInternetFacingALB
+      Port: 80
+      Protocol: HTTP # GENEVE , HTTP , HTTPS , TCP , TCP_UDP , TLS , UDP
+
+Outputs:
+  ExampleTargetGroupArn:
+    Description: An Arn of example target group
+    Value: !Ref ExampleTargetGroup
