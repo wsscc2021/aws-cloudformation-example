@@ -1,0 +1,50 @@
+
+Parameters:  
+  Subnet:
+    Type: String
+
+  SecurityGroup:
+    Type: String
+  
+  KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+  
+  AMI:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+Resources:
+  #
+  # EC2 - Instance
+  #
+  ExampleInstance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      InstanceType: t3.small
+      BlockDeviceMappings: 
+        - DeviceName: /dev/xvda
+          Ebs: 
+            DeleteOnTermination: true
+            Encrypted: true
+            # KmsKeyId: String
+            VolumeType: gp3
+            VolumeSize: 10
+            Iops: 3000
+          # VirtualName: String
+      # IamInstanceProfile: String
+      ImageId: !Ref AMI
+      KeyName: !Ref KeyPair
+      InstanceInitiatedShutdownBehavior: terminate # stop , terminate
+      # Monitoring: Boolean
+      SubnetId: !Ref Subnet
+      SecurityGroupIds: 
+        - !Ref SecurityGroup
+      PropagateTagsToVolumeOnCreation: true
+      Tags: 
+        - Key: Name
+          Value: example-public-ec2
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            echo "HelloWorld!"
