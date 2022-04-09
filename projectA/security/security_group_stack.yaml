@@ -71,6 +71,6 @@ Resources:
 
 
 Outputs:
-  SecurityGroups:
-    Description: A list of the security groups
-    Value: !Join [ ",", [ !Ref ExampleSecurityGroup, ]]
+  ExampleSecuritGroup:
+    Description: A Example Security Group
+    Value: !Ref ExampleSecurityGroup
