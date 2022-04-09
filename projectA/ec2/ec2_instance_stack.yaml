@@ -15,6 +15,50 @@ Parameters:
 
 Resources:
   #
+  # IAM Role
+  #
+  ExampleInstanceRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: example-ec2-role
+      Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+      Policies: 
+        - PolicyName: dynamodb-query
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'dynamodb:Query'
+                  - 'dynamodb:Scan'
+                Resource: '*'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # IAM Instance Profile
+  #
+  ExampleInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: example-ec2-instance-profile
+      Path: /
+      Roles: 
+        - example-ec2-role
+
+  #
   # EC2 - Instance
   #
   ExampleInstance:
@@ -30,8 +74,7 @@ Resources:
             VolumeType: gp3
             VolumeSize: 10
             Iops: 3000
-          # VirtualName: String
-      # IamInstanceProfile: String
+      IamInstanceProfile: !Ref ExampleInstanceProfile
       ImageId: !Ref AMI
       KeyName: !Ref KeyPair
       InstanceInitiatedShutdownBehavior: terminate # stop , terminate
