@@ -246,3 +246,15 @@ Outputs:
   DataSubnets:
     Description: A list of the private subnets
     Value: !Join [ ",", [ !Ref DataSubnetA, !Ref DataSubnetB, ]]
+  
+  PublicRouteTable:
+    Description: A id of public route table
+    Value: !Ref PublicRouteTable
+  
+  PrivateRouteTables:
+    Description: A list of the private route tables
+    Value: !Join [ ",", [ !Ref PrivateRouteTableA, !Ref PrivateRouteTableB, ]]
+  
+  DataRouteTable:
+    Description: A id of data route table
+    Value: !Ref DataRouteTable
