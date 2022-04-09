@@ -1,10 +1,10 @@
 
 Parameters:  
   Subnet:
-    Type: String
+    Type: AWS::EC2::Subnet::Id
 
   SecurityGroup:
-    Type: String
+    Type: AWS::EC2::SecurityGroup::Id
   
   KeyPair:
     Type: AWS::EC2::KeyPair::KeyName

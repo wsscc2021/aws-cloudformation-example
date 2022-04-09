@@ -1,16 +1,16 @@
 
 Parameters:
   VpcId:
-    Type: String
+    Type: AWS::EC2::VPC::Id
   
-  RouteTables:
+  RouteTables: # for gateway type
     Type: CommaDelimitedList
   
-  Subnets:
-    Type: CommaDelimitedList
+  Subnets: # for interface type
+    Type: List<AWS::EC2::Subnet::Id>
 
-  SecurityGroup:
-    Type: String
+  SecurityGroup: # for interface type
+    Type: AWS::EC2::SecurityGroup::Id
 
 Resources:
   #
