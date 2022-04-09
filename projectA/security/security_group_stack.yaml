@@ -1,0 +1,76 @@
+
+Parameters:
+  VpcId:
+    Type: String
+
+
+Resources:
+  #
+  # Security Groups
+  #
+  ExampleSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: description
+      GroupName: example-sg
+      Tags: 
+        - Key: Name
+          Value: example-sg
+      VpcId: !Ref VpcId
+    
+  #
+  # Ingress Rules
+  #
+  ExampleSecurityGroupIngress1:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties: 
+      GroupId: !Ref ExampleSecurityGroup
+      CidrIp: 0.0.0.0/0
+      IpProtocol: -1 # -1(all) , tcp , udp , icmp , icmpv6
+      # ToPort: 443
+      # FromPort: 443
+  
+  ExampleSecurityGroupIngress2:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties: 
+      GroupId: !Ref ExampleSecurityGroup
+      SourceSecurityGroupId: !Ref ExampleSecurityGroup
+      IpProtocol: tcp # -1(all) , tcp , udp , icmp , icmpv6
+      ToPort: 443
+      FromPort: 443
+
+  ExampleSecurityGroupIngress3:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties: 
+      GroupId: !Ref ExampleSecurityGroup
+      SourcePrefixListId: pl-63a5400a # you can check prefixlistID in console.
+      IpProtocol: tcp # -1(all) , tcp , udp , icmp , icmpv6
+      ToPort: 80
+      FromPort: 80
+
+  #
+  # Egress Rules
+  #
+  ExampleSecurityGroupEgress1:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties: 
+      GroupId: !Ref ExampleSecurityGroup
+      CidrIp: 0.0.0.0/0
+      IpProtocol: -1 # -1(all) , tcp , udp , icmp , icmpv6
+      # ToPort: 443
+      # FromPort: 443
+  
+  ExampleSecurityGroupEgress2:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties: 
+      GroupId: !Ref ExampleSecurityGroup
+      DestinationSecurityGroupId: !Ref ExampleSecurityGroup
+      IpProtocol: tcp # -1(all) , tcp , udp , icmp , icmpv6
+      ToPort: 443
+      FromPort: 443
+
+
+Outputs:
+  SecurityGroups:
+    Description: A list of the security groups
+    Value: !Join [ ",", [ !Ref ExampleSecurityGroup, ]]
