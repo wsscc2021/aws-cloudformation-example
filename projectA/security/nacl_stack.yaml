@@ -1,0 +1,92 @@
+
+Parameters:
+  VpcId:
+    Type: String
+
+  PublicSubnets:
+    Type: CommaDelimitedList
+
+Resources:
+  #
+  # NACL
+  #
+  PublicNetworkAccessList:
+    Type: AWS::EC2::NetworkAcl
+    Properties: 
+      VpcId: !Ref VpcId
+      Tags: 
+        - Key: Name
+          Value: example-public-nacl
+  
+  #
+  # NACL - Entry
+  #
+  PublicNetworkAccessListIngressEntry1:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties: 
+      NetworkAclId: !Ref PublicNetworkAccessList
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1 # -1(all), 1(ICMP), 6(TCP), 17(UDP)
+      # PortRange: 
+      #   From: 0
+      #   To: 65535
+      RuleAction: allow # allow , deny
+      RuleNumber: 10
+  
+  PublicNetworkAccessListIngressEntry2:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties: 
+      NetworkAclId: !Ref PublicNetworkAccessList
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+      Protocol: 6 # -1(all), 1(ICMP), 6(TCP), 17(UDP)
+      PortRange: 
+        From: 1024
+        To: 65535
+      RuleAction: allow # allow , deny
+      RuleNumber: 20
+
+  #
+  # NACL - Egress Entry
+  #
+  PublicNetworkAccessListEgressEntry1:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties: 
+      NetworkAclId: !Ref PublicNetworkAccessList
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1 # -1(all), 1(ICMP), 6(TCP), 17(UDP)
+      # PortRange: 
+      #   From: 0
+      #   To: 65535
+      RuleAction: allow # allow , deny
+      RuleNumber: 10
+  
+  PublicNetworkAccessListEgressEntry2:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties: 
+      NetworkAclId: !Ref PublicNetworkAccessList
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+      Protocol: 6 # -1(all), 1(ICMP), 6(TCP), 17(UDP)
+      PortRange: 
+        From: 1024
+        To: 65535
+      RuleAction: allow # allow , deny
+      RuleNumber: 20
+  
+  #
+  # NACL - Association subnets
+  #
+  AssociationPublicSubnetA:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties: 
+      NetworkAclId: !Ref PublicNetworkAccessList
+      SubnetId: !Select [ 0, !Ref PublicSubnets ]
+  
+  AssociationPublicSubnetB:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties: 
+      NetworkAclId: !Ref PublicNetworkAccessList
+      SubnetId: !Select [ 1, !Ref PublicSubnets ]
