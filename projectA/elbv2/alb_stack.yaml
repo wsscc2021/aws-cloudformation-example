@@ -13,7 +13,7 @@ Resources:
   #
   # ELBv2 - Target Group
   #
-  ExampleTargetGroup:
+  TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties: 
       HealthCheckEnabled: true
@@ -41,7 +41,7 @@ Resources:
   #
   # ELBv2 - Internet-facing ALB
   #
-  ExampleInternetFacingALB:
+  ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
       Type: application
@@ -61,7 +61,7 @@ Resources:
   #
   # ELBv2 - Listener
   #
-  ExampleInternetFacingALBListener:
+  ApplicationLoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties: 
       # Certificates: 
@@ -73,11 +73,11 @@ Resources:
             ContentType: text/plain
             MessageBody: "Content not found"
             StatusCode: '404'
-      LoadBalancerArn: !Ref ExampleInternetFacingALB
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
       Port: 80
       Protocol: HTTP # GENEVE , HTTP , HTTPS , TCP , TCP_UDP , TLS , UDP
 
 Outputs:
-  ExampleTargetGroupArn:
+  TargetGroupArn:
     Description: An Arn of example target group
-    Value: !Ref ExampleTargetGroup
+    Value: !Ref TargetGroup
