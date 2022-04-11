@@ -52,6 +52,7 @@ Resources:
   #
   ExampleInstanceProfile:
     Type: AWS::IAM::InstanceProfile
+    DependsOn: ExampleInstanceRole
     Properties: 
       InstanceProfileName: example-ec2-instance-profile
       Path: /
