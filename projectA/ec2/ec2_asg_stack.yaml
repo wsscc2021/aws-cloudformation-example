@@ -3,8 +3,8 @@ Parameters:
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
 
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup::Id
+  SecurityGroups:
+    Type: List<AWS::EC2::SecurityGroup::Id>
 
   KeyPair:
     Type: AWS::EC2::KeyPair::KeyName
@@ -85,8 +85,7 @@ Resources:
         InstanceType: t3.small
         KeyName: !Ref KeyPair
         # Monitoring: 
-        SecurityGroupIds: 
-          - !Ref SecurityGroup
+        SecurityGroupIds: !Ref SecurityGroups
         TagSpecifications: 
           - ResourceType: instance # instance, volume
             Tags: 

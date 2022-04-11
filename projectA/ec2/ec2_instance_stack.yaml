@@ -3,8 +3,8 @@ Parameters:
   Subnet:
     Type: AWS::EC2::Subnet::Id
 
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup::Id
+  SecurityGroups:
+    Type: List<AWS::EC2::SecurityGroup::Id>
   
   KeyPair:
     Type: AWS::EC2::KeyPair::KeyName
@@ -81,8 +81,7 @@ Resources:
       InstanceInitiatedShutdownBehavior: terminate # stop , terminate
       # Monitoring: Boolean
       SubnetId: !Ref Subnet
-      SecurityGroupIds: 
-        - !Ref SecurityGroup
+      SecurityGroupIds: !Ref SecurityGroups
       PropagateTagsToVolumeOnCreation: true
       Tags: 
         - Key: Name
