@@ -20,7 +20,7 @@ Resources:
   #
   # IAM Role
   #
-  ExampleInstanceRole:
+  Role:
     Type: AWS::IAM::Role
     Properties: 
       RoleName: example-ec2-role
@@ -54,9 +54,9 @@ Resources:
   #
   # IAM Instance Profile
   #
-  ExampleInstanceProfile:
+  InstanceProfile:
     Type: AWS::IAM::InstanceProfile
-    DependsOn: ExampleInstanceRole
+    DependsOn: Role
     Properties: 
       InstanceProfileName: example-ec2-instance-profile
       Path: /
@@ -66,7 +66,7 @@ Resources:
   #
   # LaunchTemplate
   #
-  ExampleLaunchTemplate:
+  LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties: 
       LaunchTemplateName: example-lt
@@ -82,7 +82,7 @@ Resources:
               Encrypted: true
               # KmsKeyId: String
         IamInstanceProfile:
-          Arn: !GetAtt ExampleInstanceProfile.Arn
+          Arn: !GetAtt InstanceProfile.Arn
           # Name: String
         ImageId: !Ref AMI
         InstanceInitiatedShutdownBehavior: terminate # stop , terminate
@@ -120,7 +120,7 @@ Resources:
   #
   # Auto Scaling Group
   #
-  ExampleAutoScalingGroup:
+  AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties: 
       AutoScalingGroupName: example-asg
@@ -133,8 +133,8 @@ Resources:
       HealthCheckGracePeriod: 60
       HealthCheckType: ELB # EC2 , ELB
       LaunchTemplate: 
-        LaunchTemplateId: !Ref ExampleLaunchTemplate
-        Version: !GetAtt ExampleLaunchTemplate.LatestVersionNumber # DefaultVersionNumber , LatestVersionNumber
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber # DefaultVersionNumber , LatestVersionNumber
       Tags: 
         - PropagateAtLaunch: true
           Key: Name

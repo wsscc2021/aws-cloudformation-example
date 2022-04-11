@@ -17,7 +17,7 @@ Resources:
   #
   # IAM Role
   #
-  ExampleInstanceRole:
+  Role:
     Type: AWS::IAM::Role
     Properties: 
       RoleName: example-ec2-role
@@ -50,9 +50,9 @@ Resources:
   #
   # IAM Instance Profile
   #
-  ExampleInstanceProfile:
+  InstanceProfile:
     Type: AWS::IAM::InstanceProfile
-    DependsOn: ExampleInstanceRole
+    DependsOn: Role
     Properties: 
       InstanceProfileName: example-ec2-instance-profile
       Path: /
@@ -62,7 +62,7 @@ Resources:
   #
   # EC2 - Instance
   #
-  ExampleInstance:
+  Instance:
     Type: AWS::EC2::Instance
     Properties: 
       InstanceType: t3.small
@@ -75,7 +75,7 @@ Resources:
             VolumeType: gp3
             VolumeSize: 10
             Iops: 3000
-      IamInstanceProfile: !Ref ExampleInstanceProfile
+      IamInstanceProfile: !Ref InstanceProfile
       ImageId: !Ref AMI
       KeyName: !Ref KeyPair
       InstanceInitiatedShutdownBehavior: terminate # stop , terminate
