@@ -1,0 +1,20 @@
+
+Parameters:
+  SourceVPC:
+    Type: AWS::EC2::VPC::Id
+
+  TargetVPC:
+    Type: AWS::EC2::VPC::Id
+
+Resources:
+  VpcPeeringConnection:
+    Type: AWS::EC2::VPCPeeringConnection
+    Properties: 
+      # PeerOwnerId: String
+      PeerRegion: us-east-1
+      # PeerRoleArn: String
+      PeerVpcId: !Ref TargetVPC
+      VpcId: !Ref SourceVPC
+      Tags: 
+        - Key: key01
+          Value: value01
