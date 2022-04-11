@@ -1,0 +1,44 @@
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+
+  SecurityGroups:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+Resources:
+  FileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties: 
+      BackupPolicy: 
+        Status: ENABLED
+      Encrypted: true
+      # KmsKeyId: String
+      FileSystemTags: 
+        - Key: key01
+          Value: value01
+      LifecyclePolicies: 
+        - TransitionToIA: 'AFTER_30_DAYS' # AFTER_7_DAYS , AFTER_14_DAYS , AFTER_30_DAYS , AFTER_60_DAYS , AFTER_90_DAYS
+        - TransitionToPrimaryStorageClass: 'AFTER_1_ACCESS'
+      PerformanceMode: generalPurpose # generalPurpose , maxIO
+      ThroughputMode: bursting # bursting , provisioned
+      # ProvisionedThroughputInMibps: Double
+
+  MountTargetA:
+    Type: AWS::EFS::MountTarget
+    Properties: 
+      FileSystemId: !Ref FileSystem
+      # IpAddress: String
+      SecurityGroups: !Ref SecurityGroups
+      SubnetId: !Select [ 0 , !Ref Subnets ]
+
+  MountTargetB:
+    Type: AWS::EFS::MountTarget
+    Properties: 
+      FileSystemId: !Ref FileSystem
+      # IpAddress: String
+      SecurityGroups: !Ref SecurityGroups
+      SubnetId: !Select [ 1 , !Ref Subnets ]
