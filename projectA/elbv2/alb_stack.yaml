@@ -6,8 +6,8 @@ Parameters:
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
 
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup::Id
+  SecurityGroups:
+    Type: List<AWS::EC2::SecurityGroup::Id>
   
 Resources:
   #
@@ -44,15 +44,14 @@ Resources:
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties: 
-      Type: application
       Name: example-ext-alb
+      Type: application # application , network , gateway
+      Scheme: internet-facing # internal , internet-facing
       IpAddressType: ipv4 # ipv4 , ipv6
       LoadBalancerAttributes: 
         - Key: routing.http2.enabled
           Value: true
-      Scheme: internet-facing # internal , internet-facing
-      SecurityGroups: 
-        - !Ref SecurityGroup
+      SecurityGroups: !Ref SecurityGroups
       Subnets: !Ref Subnets
       Tags: 
         - Key: key01
