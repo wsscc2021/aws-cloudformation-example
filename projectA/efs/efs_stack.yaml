@@ -10,6 +10,9 @@ Parameters:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
 Resources:
+  #
+  # EFS - FileSystem
+  #
   FileSystem:
     Type: AWS::EFS::FileSystem
     Properties: 
@@ -27,6 +30,9 @@ Resources:
       ThroughputMode: bursting # bursting , provisioned
       # ProvisionedThroughputInMibps: Double
 
+  #
+  # EFS - MountTarget
+  #
   MountTargetA:
     Type: AWS::EFS::MountTarget
     Properties: 

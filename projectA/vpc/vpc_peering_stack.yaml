@@ -7,6 +7,9 @@ Parameters:
     Type: AWS::EC2::VPC::Id
 
 Resources:
+  #
+  # VPC - PeeringConnection
+  #
   VpcPeeringConnection:
     Type: AWS::EC2::VPCPeeringConnection
     Properties: 
