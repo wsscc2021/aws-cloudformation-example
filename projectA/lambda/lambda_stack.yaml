@@ -43,7 +43,7 @@ Resources:
       Description: description
       Runtime: python3.9 # python3.9 , nodejs14.x  ...
       Architectures: # arm64 , x86_64
-        - x86_64
+        - arm64
       PackageType: Zip # Image , Zip
       Code: 
         # S3Bucket: String
