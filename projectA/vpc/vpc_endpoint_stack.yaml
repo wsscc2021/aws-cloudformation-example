@@ -9,8 +9,8 @@ Parameters:
   Subnets: # for interface type
     Type: List<AWS::EC2::Subnet::Id>
 
-  SecurityGroup: # for interface type
-    Type: AWS::EC2::SecurityGroup::Id
+  SecurityGroups: # for interface type
+    Type: List<AWS::EC2::SecurityGroup::Id>
 
 Resources:
   #
@@ -32,8 +32,7 @@ Resources:
     Properties: 
       PrivateDnsEnabled: false # s3 can not support, but its recommended other service.
       SubnetIds:  !Ref Subnets
-      SecurityGroupIds: 
-        - !Ref SecurityGroup
+      SecurityGroupIds: !Ref SecurityGroups
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
       VpcEndpointType: Interface # Gateway, GatewayLoadBalancer, Interface
       VpcId: !Ref VpcId
