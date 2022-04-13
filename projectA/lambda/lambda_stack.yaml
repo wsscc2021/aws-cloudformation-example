@@ -1,0 +1,73 @@
+
+Resources:
+  #
+  # IAM - Role
+  #
+  Role:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: example-lambda-role
+      Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      # Policies: 
+      #   - PolicyName: dynamodb-query
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'dynamodb:Query'
+      #             - 'dynamodb:Scan'
+      #           Resource: '*'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # Lambda - Function
+  #
+  Function:
+    Type: AWS::Lambda::Function
+    Properties: 
+      FunctionName: myFunction
+      Description: description
+      Runtime: python3.9 # python3.9 , nodejs14.x  ...
+      Architectures: # arm64 , x86_64
+        - x86_64
+      PackageType: Zip # Image , Zip
+      Code: 
+        # S3Bucket: String
+        # S3Key: String
+        # S3ObjectVersion: String
+        ZipFile: >
+          import json
+
+          def handler(event, context):
+              return {
+                  "statusCode": 200,
+                  "body": json.dumps("Hello from Lambda!")
+              }
+      Handler: index.handler
+      MemorySize: 512 # MB
+      Timeout: 60 # seconds
+      Role: !GetAtt Role.Arn
+      EphemeralStorage: 
+        Size: 512 # MB
+      Environment: 
+        Variables:  
+          key01: value01
+      Tags: 
+        - Key: key01
+          Value: value01
+      TracingConfig: 
+        Mode: Active # Active , PassThrough
