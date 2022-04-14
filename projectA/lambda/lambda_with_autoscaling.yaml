@@ -1,0 +1,151 @@
+
+Resources:
+  #
+  # IAM - Role
+  #
+  Role:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: example-lambda-role
+      Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      # Policies: 
+      #   - PolicyName: dynamodb-query
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'dynamodb:Query'
+      #             - 'dynamodb:Scan'
+      #           Resource: '*'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # Lambda - Function
+  #
+  Function:
+    Type: AWS::Lambda::Function
+    Properties: 
+      FunctionName: myFunction
+      Description: description
+      Runtime: python3.9 # python3.9 , nodejs14.x  ...
+      Architectures: # arm64 , x86_64
+        - arm64
+      PackageType: Zip # Image , Zip
+      Code: 
+        # S3Bucket: String
+        # S3Key: String
+        # S3ObjectVersion: String
+        ZipFile: >
+          import json
+
+          def handler(event, context):
+              return {
+                  "statusCode": 200,
+                  "body": json.dumps("Hello from Lambda!")
+              }
+      Handler: index.handler
+      MemorySize: 512 # MB
+      Timeout: 60 # seconds
+      Role: !GetAtt Role.Arn
+      EphemeralStorage: 
+        Size: 512 # MB
+      Environment: 
+        Variables:  
+          key01: value01
+      Tags: 
+        - Key: key01
+          Value: value01
+      TracingConfig: 
+        Mode: Active # Active , PassThrough
+
+  #
+  # Lambda - Version
+  #
+  FunctionVersion:
+    Type: AWS::Lambda::Version
+    DependsOn: Function
+    Properties: 
+      # CodeSha256: String
+      # Description: String
+      FunctionName: myFunction
+      # ProvisionedConcurrencyConfig: 
+      #   ProvisionedConcurrentExecutions: 1
+
+  #
+  # Lambda - Alias
+  #
+  FunctionAlias:
+    Type: AWS::Lambda::Alias
+    DependsOn: FunctionVersion
+    Properties: 
+      Name: prod
+      # Description: String
+      FunctionName: myFunction
+      FunctionVersion: !GetAtt FunctionVersion.Version
+      ProvisionedConcurrencyConfig: 
+        ProvisionedConcurrentExecutions: 1
+      # RoutingConfig: 
+      #   AdditionalVersionWeights: 
+      #     - FunctionVersion: String
+      #       FunctionWeight: Double
+    
+  #
+  # Application Auto Scaling - ScalableTarget
+  #
+  ScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: FunctionAlias
+    Properties: 
+      MaxCapacity: 10
+      MinCapacity: 1
+      ServiceNamespace: lambda
+      ScalableDimension: lambda:function:ProvisionedConcurrency
+      ResourceId: function:myFunction:prod
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lambda.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_LambdaConcurrency
+      # ScheduledActions: 
+      #   - ScalableTargetAction: 
+      #       MaxCapacity: Integer
+      #       MinCapacity: Integer
+      #     Schedule: String
+      #     ScheduledActionName: String
+      #     StartTime: Timestamp
+      #     EndTime: Timestamp
+      #     Timezone: String
+      # SuspendedState: 
+      #   SuspendedState
+
+  #
+  # Application Auto Scaling - Scaling Policy
+  #  
+  ScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties: 
+      PolicyName: TargetTracking70Percent
+      PolicyType: TargetTrackingScaling # StepScaling , TargetTrackingScaling
+      ScalingTargetId: !Ref ScalableTarget
+      # StepScalingPolicyConfiguration: 
+      #   StepScalingPolicyConfiguration
+      TargetTrackingScalingPolicyConfiguration: 
+        # CustomizedMetricSpecification: 
+        #   CustomizedMetricSpecification
+        DisableScaleIn: false
+        PredefinedMetricSpecification: 
+          PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
+          # ResourceLabel: String
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        TargetValue: 0.7
