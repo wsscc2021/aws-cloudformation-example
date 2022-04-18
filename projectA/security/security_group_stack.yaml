@@ -55,19 +55,19 @@ Resources:
     Type: AWS::EC2::SecurityGroupEgress
     Properties: 
       GroupId: !Ref ExampleSecurityGroup
-      CidrIp: 0.0.0.0/0
-      IpProtocol: -1 # -1(all) , tcp , udp , icmp , icmpv6
-      # ToPort: 443
-      # FromPort: 443
+      DestinationSecurityGroupId: !Ref ExampleSecurityGroup
+      IpProtocol: tcp # -1(all) , tcp , udp , icmp , icmpv6
+      ToPort: 443
+      FromPort: 443
   
   ExampleSecurityGroupEgress2:
     Type: AWS::EC2::SecurityGroupEgress
     Properties: 
       GroupId: !Ref ExampleSecurityGroup
-      DestinationSecurityGroupId: !Ref ExampleSecurityGroup
-      IpProtocol: tcp # -1(all) , tcp , udp , icmp , icmpv6
-      ToPort: 443
-      FromPort: 443
+      CidrIp: 0.0.0.0/0
+      IpProtocol: -1 # -1(all) , tcp , udp , icmp , icmpv6
+      # ToPort: 443
+      # FromPort: 443
 
 
 Outputs:
