@@ -1,0 +1,92 @@
+Parameters:
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+  
+  SecurityGroups:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+  
+  SecretId:
+    Description: rds/example-rds-mysql-instance/admin-xspWKn <- arn:aws:secretsmanager:us-east-1:111111111111:secret:rds/example-rds-mysql-instance/admin-xspWKn
+    Type: String
+
+  DBClusterIdentifier:
+    Type: String
+  
+  DBInstanceIdentifier:
+    Type: String
+
+Resources:
+  #
+  # IAM - Role
+  #
+  DBProxyRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: example-rds-mysql-proxy-role      
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - rds.amazonaws.com
+      Policies: 
+        - PolicyName: GetSecretValue
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'secretsmanager:GetSecretValue'
+                Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretId}'
+        - PolicyName: DecryptSecretValue
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'kms:Decrypt'
+                Resource: !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${SecretId}'
+      # ManagedPolicyArns: 
+      #   - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Tags: 
+        - Key: key01
+          Value: value01
+  
+  #
+  # RDS - DBProxy
+  #
+  DBProxy:
+    Type: AWS::RDS::DBProxy
+    Properties: 
+      DBProxyName: example-rds-mysql-proxy
+      Auth: 
+        - AuthScheme: SECRETS
+          IAMAuth: DISABLED # DISABLED , REQUIRED
+          SecretArn: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretId}'
+      DebugLogging: true
+      EngineFamily: MYSQL # MYSQL , POSTGRESQL
+      RequireTLS: true
+      RoleArn: !GetAtt DBProxyRole.Arn
+      Tags: 
+        - Key: key01
+          Value: value01
+      VpcSecurityGroupIds: !Ref SecurityGroups
+      VpcSubnetIds: !Ref Subnets
+
+  #
+  # RDS - DBProxyTargetGroup
+  #
+  DBProxyTargetGroup:
+    Type: AWS::RDS::DBProxyTargetGroup
+    Properties: 
+      TargetGroupName: default # currently, this property must be set to default
+      DBProxyName: !Ref DBProxy
+      # DBClusterIdentifiers: 
+      #   - !Ref DBClusterIdentifier
+      DBInstanceIdentifiers: 
+        - !Ref DBInstanceIdentifier
+      ConnectionPoolConfigurationInfo: 
+        MaxConnectionsPercent: 100
