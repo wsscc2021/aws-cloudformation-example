@@ -98,7 +98,7 @@ Resources:
       OptionGroupName: !Ref OptionGroup
       DeleteAutomatedBackups: false
       DeletionProtection: true
-      EnableIAMDatabaseAuthentication: false
+      EnableIAMDatabaseAuthentication: true
       Engine: postgres # mysql , postgres , mariadb , aurora , aurora-mysql , aurora-postgresql ...
       EngineVersion: '14.2'
       DBName: exampledb
