@@ -1,0 +1,140 @@
+
+Parameters:
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+  
+  SecurityGroups:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  MasterUserName:
+    Type: String
+  
+  MasterUserPassword:
+    Type: String
+
+Resources:
+  #
+  # RDS - Parameter Group
+  #
+  ParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: 'This is parameter group of mysql8.0'
+      Family: mysql8.0
+      # Parameters: 
+      #   Key : Value
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # RDS - Option Group
+  #
+  OptionGroup:
+    Type: AWS::RDS::OptionGroup
+    Properties: 
+      OptionGroupDescription: 'This is options group of mysql8.0'
+      EngineName: mysql
+      MajorEngineVersion: '8.0'
+      # OptionConfigurations: 
+      #   - OptionConfiguration
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # RDS - Subnet Group
+  #
+  SubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: 'This is subnet group of example'
+      DBSubnetGroupName: example-db-subnet-group
+      SubnetIds: !Ref Subnets
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # IAM - Role (for RDS Monitoring)
+  #
+  MonitoringRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      ManagedPolicyArns:
+      - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
+      AssumeRolePolicyDocument:
+        Version: '2008-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 'monitoring.rds.amazonaws.com'
+          Action: 'sts:AssumeRole'
+
+  #
+  # RDS - MySQL with Multi-AZ DB Instance Deployment
+  #
+  MySQLInstance:
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      # DBClusterIdentifier: String
+      DBInstanceIdentifier: example-rds-mysql-instance
+      DBInstanceClass: db.t3.small
+      StorageType: gp2
+      # Iops: Integer
+      AllocatedStorage: '20'
+      MaxAllocatedStorage: '1000'
+      StorageEncrypted: true
+      # KmsKeyId: String
+      # DBSnapshotIdentifier: String
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      # PreferredMaintenanceWindow: String
+      BackupRetentionPeriod: '7'
+      # PreferredBackupWindow: String
+      CopyTagsToSnapshot: true
+      DBParameterGroupName: !Ref ParameterGroup
+      DBSubnetGroupName: !Ref SubnetGroup
+      OptionGroupName: !Ref OptionGroup
+      DeleteAutomatedBackups: false
+      DeletionProtection: true
+      EnableIAMDatabaseAuthentication: true
+      Engine: mysql # mysql , mariadb, aurora , aurora-mysql , aurora-postgresql ...
+      EngineVersion: '8.0.28'
+      DBName: db
+      MasterUsername: !Ref MasterUserName
+      MasterUserPassword: !Ref MasterUserPassword
+      MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
+      MonitoringRoleArn: !GetAtt MonitoringRole.Arn
+      EnableCloudwatchLogsExports: # audit , error, general , slowquery
+        - audit
+        - error
+        - general
+        - slowquery
+      MultiAZ: true
+      # EnablePerformanceInsights: true # only aurora
+      # PerformanceInsightsRetentionPeriod: 7 # 7 , 731 (2 year)
+      # PerformanceInsightsKMSKeyId: String
+      Port: 3306
+      PubliclyAccessible: false
+      VPCSecurityGroups: !Ref SecurityGroups
+      Tags: 
+        - Key: key01
+          Value: value01
+      
+  #
+  # RDS - Read Replica Instance
+  #
+  ReadReplicaInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      # DBClusterIdentifier: String
+      DBInstanceIdentifier: example-rds-mysql-instance-rr1
+      SourceDBInstanceIdentifier: !Ref MySQLInstance
+      DBInstanceClass: db.t3.small
+      StorageType: gp2
+      # Iops: Integer
+      MaxAllocatedStorage: '1000'
+      Tags:
+      - Key: key01
+        Value: value01
