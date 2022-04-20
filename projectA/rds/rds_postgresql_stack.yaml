@@ -6,46 +6,7 @@ Parameters:
   SecurityGroups:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
-  MasterUserName:
-    Type: String
-  
-  MasterUserPassword:
-    Type: String
-
 Resources:
-  #
-  # RDS - Parameter Group
-  #
-  ParameterGroup:
-    Type: AWS::RDS::DBParameterGroup
-    Properties: 
-      Description: 'This is parameter group of postgres14'
-      Family: postgres14
-      # Parameters: 
-      #   Key : Value
-
-  #
-  # RDS - Option Group
-  #
-  OptionGroup:
-    Type: AWS::RDS::OptionGroup
-    Properties: 
-      OptionGroupDescription: 'This is options group of postgres'
-      EngineName: postgres
-      MajorEngineVersion: '14'
-      # OptionConfigurations: 
-      #   - OptionConfiguration
-
-  #
-  # RDS - Subnet Group
-  #
-  SubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties: 
-      DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: rds-postgres-subnet-group
-      SubnetIds: !Ref Subnets
-
   #
   # IAM - Role (for RDS Monitoring)
   #
@@ -63,16 +24,72 @@ Resources:
           Action: 'sts:AssumeRole'
 
   #
+  # Secrets Manager - Secret
+  #
+  RDSMasterSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: 'rds/rds-postgresql/postgres'
+      Description: 'This is secret of rds username and password'
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "postgres"}'
+        GenerateStringKey: 'password'
+        ExcludeCharacters: '"@/\'
+        PasswordLength: 16
+
+  #
+  # Secrets Manager - TargetAttachment
+  #
+  RDSMasterSecretTargetAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref RDSMasterSecret
+      TargetId: !Ref PostgresInstance
+      TargetType: AWS::RDS::DBInstance
+
+  #
+  # RDS - Parameter Group
+  #
+  ParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: 'This is parameter group of postgres14'
+      Family: postgres14
+      # Parameters: 
+      #   Key : Value
+
+  #
+  # RDS - Option Group
+  #
+  OptionGroup:
+    Type: AWS::RDS::OptionGroup
+    Properties: 
+      OptionGroupDescription: 'This is options group of postgres14'
+      EngineName: postgres
+      MajorEngineVersion: '14'
+      # OptionConfigurations: 
+      #   - OptionConfiguration
+
+  #
+  # RDS - Subnet Group
+  #
+  SubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: 'This is subnet group of example'
+      DBSubnetGroupName: rds-postgres-subnet-group
+      SubnetIds: !Ref Subnets
+
+  #
   # RDS - MySQL with Multi-AZ DB Instance Deployment
   #
   PostgresInstance:
     Type: AWS::RDS::DBInstance
     Properties: 
-      # DBClusterIdentifier: String
       DBInstanceIdentifier: rds-postgres-instance
       Engine: postgres # mysql , postgres , mariadb , aurora , aurora-mysql , aurora-postgresql ...
       EngineVersion: '14.2'
-      DBInstanceClass: db.t3.small
+      DBInstanceClass: db.t4g.small
       StorageType: gp2
       # Iops: Integer
       AllocatedStorage: '20'
@@ -92,8 +109,8 @@ Resources:
       DeletionProtection: false
       EnableIAMDatabaseAuthentication: true
       DBName: exampledb
-      MasterUsername: !Ref MasterUserName
-      MasterUserPassword: !Ref MasterUserPassword
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref RDSMasterSecret, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref RDSMasterSecret, ':SecretString:password}}' ]]
       MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
       MonitoringRoleArn: !GetAtt MonitoringRole.Arn
       EnableCloudwatchLogsExports: # postgresql , upgrade

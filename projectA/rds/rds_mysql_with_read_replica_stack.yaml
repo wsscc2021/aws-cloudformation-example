@@ -6,55 +6,7 @@ Parameters:
   SecurityGroups:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
-  MasterUserName:
-    Type: String
-  
-  MasterUserPassword:
-    Type: String
-
 Resources:
-  #
-  # RDS - Parameter Group
-  #
-  ParameterGroup:
-    Type: AWS::RDS::DBParameterGroup
-    Properties: 
-      Description: 'This is parameter group of mysql8.0'
-      Family: mysql8.0
-      # Parameters: 
-      #   Key : Value
-      Tags: 
-        - Key: key01
-          Value: value01
-
-  #
-  # RDS - Option Group
-  #
-  OptionGroup:
-    Type: AWS::RDS::OptionGroup
-    Properties: 
-      OptionGroupDescription: 'This is options group of mysql8.0'
-      EngineName: mysql
-      MajorEngineVersion: '8.0'
-      # OptionConfigurations: 
-      #   - OptionConfiguration
-      Tags: 
-        - Key: key01
-          Value: value01
-
-  #
-  # RDS - Subnet Group
-  #
-  SubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties: 
-      DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: example-db-subnet-group
-      SubnetIds: !Ref Subnets
-      Tags: 
-        - Key: key01
-          Value: value01
-
   #
   # IAM - Role (for RDS Monitoring)
   #
@@ -72,14 +24,72 @@ Resources:
           Action: 'sts:AssumeRole'
 
   #
+  # Secrets Manager - Secret
+  #
+  RDSMasterSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: 'rds/rds-mysql/admin'
+      Description: 'This is secret of rds username and password'
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: 'password'
+        ExcludeCharacters: '"@/\'
+        PasswordLength: 16
+
+  #
+  # Secrets Manager - TargetAttachment
+  #
+  RDSMasterSecretTargetAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref RDSMasterSecret
+      TargetId: !Ref MySQLInstance
+      TargetType: AWS::RDS::DBInstance
+
+  #
+  # RDS - Parameter Group
+  #
+  ParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: 'This is parameter group of mysql8.0'
+      Family: mysql8.0
+      # Parameters: 
+      #   Key : Value
+
+  #
+  # RDS - Option Group
+  #
+  OptionGroup:
+    Type: AWS::RDS::OptionGroup
+    Properties: 
+      OptionGroupDescription: 'This is options group of mysql8.0'
+      EngineName: mysql
+      MajorEngineVersion: '8.0'
+      # OptionConfigurations: 
+      #   - OptionConfiguration
+
+  #
+  # RDS - Subnet Group
+  #
+  SubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: 'This is subnet group of example'
+      DBSubnetGroupName: rds-mysql-subnet-group
+      SubnetIds: !Ref Subnets
+
+  #
   # RDS - MySQL with Multi-AZ DB Instance Deployment
   #
   MySQLInstance:
     Type: AWS::RDS::DBInstance
     Properties: 
-      # DBClusterIdentifier: String
-      DBInstanceIdentifier: example-rds-mysql-instance
-      DBInstanceClass: db.t3.small
+      DBInstanceIdentifier: rds-mysql-instance
+      Engine: mysql # mysql , mariadb, aurora , aurora-mysql , aurora-postgresql ...
+      EngineVersion: '8.0.28'
+      DBInstanceClass: db.t4g.small
       StorageType: gp2
       # Iops: Integer
       AllocatedStorage: '20'
@@ -99,11 +109,9 @@ Resources:
       DeleteAutomatedBackups: false
       DeletionProtection: false
       EnableIAMDatabaseAuthentication: true
-      Engine: mysql # mysql , mariadb, aurora , aurora-mysql , aurora-postgresql ...
-      EngineVersion: '8.0.28'
       DBName: db
-      MasterUsername: !Ref MasterUserName
-      MasterUserPassword: !Ref MasterUserPassword
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref RDSMasterSecret, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref RDSMasterSecret, ':SecretString:password}}' ]]
       MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
       MonitoringRoleArn: !GetAtt MonitoringRole.Arn
       EnableCloudwatchLogsExports: # audit , error, general , slowquery
@@ -112,16 +120,13 @@ Resources:
         - general
         - slowquery
       MultiAZ: true
-      # EnablePerformanceInsights: true # only aurora
-      # PerformanceInsightsRetentionPeriod: 7 # 7 , 731 (2 year)
-      # PerformanceInsightsKMSKeyId: String
       Port: 3306
       PubliclyAccessible: false
       VPCSecurityGroups: !Ref SecurityGroups
       Tags: 
         - Key: key01
           Value: value01
-      
+
   #
   # RDS - Read Replica Instance
   #
@@ -129,9 +134,9 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties:
       # DBClusterIdentifier: String
-      DBInstanceIdentifier: example-rds-mysql-instance-rr1
+      DBInstanceIdentifier: rds-mysql-read-replica
       SourceDBInstanceIdentifier: !Ref MySQLInstance
-      DBInstanceClass: db.t3.small
+      DBInstanceClass: db.t4g.small
       StorageType: gp2
       # Iops: Integer
       MaxAllocatedStorage: '1000'
