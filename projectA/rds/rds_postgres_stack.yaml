@@ -97,7 +97,7 @@ Resources:
       DBSubnetGroupName: !Ref SubnetGroup
       OptionGroupName: !Ref OptionGroup
       DeleteAutomatedBackups: false
-      DeletionProtection: true
+      DeletionProtection: false
       EnableIAMDatabaseAuthentication: true
       Engine: postgres # mysql , postgres , mariadb , aurora , aurora-mysql , aurora-postgresql ...
       EngineVersion: '14.2'
