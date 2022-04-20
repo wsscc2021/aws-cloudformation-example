@@ -1,0 +1,162 @@
+
+Parameters:
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+  
+  SecurityGroups:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+Resources:
+  #
+  # IAM - Role (for RDS Monitoring)
+  #
+  MonitoringRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      ManagedPolicyArns:
+      - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
+      AssumeRolePolicyDocument:
+        Version: '2008-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 'monitoring.rds.amazonaws.com'
+          Action: 'sts:AssumeRole'
+  
+  #
+  # Secrets Manager - Secret
+  #
+  AuroraMasterSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: 'rds/aurora-mysql/admin'
+      Description: 'This is secret of rds username and password'
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: 'password'
+        ExcludeCharacters: '"@/\'
+        PasswordLength: 16
+
+  #
+  # Secrets Manager - TargetAttachment
+  #
+  AuroraMasterSecretTargetAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref AuroraMasterSecret
+      TargetId: !Ref AuroraMySQLCluster
+      TargetType: AWS::RDS::DBCluster
+
+  #
+  # RDS - Cluster Parameter Group
+  #
+  ClusterParameterGroup:                                    
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties: 
+      Description: 'This is cluster parameter group of aurora-mysql5.7'
+      Family: aurora-mysql5.7
+      Parameters:
+        time_zone: US/Eastern
+        character_set_database: utf8mb4
+
+  #
+  # RDS - Parameter Group
+  #
+  ParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: 'This is parameter group of aurora-mysql5.7'
+      Family: aurora-mysql5.7
+      # Parameters: 
+      #   Key : Value
+
+  #
+  # RDS - Subnet Group
+  #
+  SubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: 'This is subnet group of example'
+      DBSubnetGroupName: aurora-mysql-subnet-group
+      SubnetIds: !Ref Subnets
+  
+  #
+  # RDS - DBCluster
+  #
+  AuroraMySQLCluster:
+    Type: AWS::RDS::DBCluster
+    Properties: 
+      DBClusterIdentifier: aurora-mysql-cluster
+      DBClusterParameterGroupName: !Ref ClusterParameterGroup
+      DBSubnetGroupName: !Ref SubnetGroup
+      Engine: aurora-mysql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql
+      EngineMode: provisioned # provisioned , serverless , parallelquery , global , multimaster
+      EngineVersion: 5.7.mysql_aurora.2.10.2
+      EnableCloudwatchLogsExports: # audit , error , general , slowquery
+        - audit
+        - error
+        - general
+        - slowquery
+      EnableIAMDatabaseAuthentication: true
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:password}}' ]]
+      Port: 3306
+      DeletionProtection: false
+      BacktrackWindow: 24 # hours
+      BackupRetentionPeriod: 7 # days
+      CopyTagsToSnapshot: true
+      # PreferredBackupWindow: String
+      # PreferredMaintenanceWindow: String
+      StorageEncrypted: true
+      # KmsKeyId: String
+      VpcSecurityGroupIds: !Ref SecurityGroups
+      DatabaseName: exampledb
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # RDS - DBInstance (first)
+  #
+  AuroraMySQLInstance1:
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      DBClusterIdentifier: !Ref AuroraMySQLCluster
+      DBInstanceIdentifier: aurora-mysql-instance-1
+      Engine: aurora-mysql
+      # EngineVersion: 5.7.mysql_aurora.2.10.2
+      DBInstanceClass: db.t3.small
+      DBParameterGroupName: !Ref ParameterGroup
+      PubliclyAccessible: false
+      MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
+      MonitoringRoleArn: !GetAtt MonitoringRole.Arn
+      DeleteAutomatedBackups: false    
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      Tags: 
+        - Key: key01
+          Value: value01
+      
+  #
+  # RDS - DBInstance (second)
+  #
+  AuroraMySQLInstance2:
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      DBClusterIdentifier: !Ref AuroraMySQLCluster
+      DBInstanceIdentifier: aurora-mysql-instance-2
+      Engine: aurora-mysql
+      # EngineVersion: 5.7.mysql_aurora.2.10.2
+      DBInstanceClass: db.t3.small
+      DBParameterGroupName: !Ref ParameterGroup
+      PubliclyAccessible: false
+      MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
+      MonitoringRoleArn: !GetAtt MonitoringRole.Arn
+      DeleteAutomatedBackups: false    
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      Tags: 
+        - Key: key01
+          Value: value01
