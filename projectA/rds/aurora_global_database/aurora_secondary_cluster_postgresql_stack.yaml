@@ -1,0 +1,141 @@
+
+Parameters:
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  GlobalClusterIdentifier:
+    Description: GlobalClusterIdentifier
+    Type: String
+
+Resources:
+  #
+  # IAM - Role (for RDS Monitoring)
+  #
+  MonitoringRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      ManagedPolicyArns:
+      - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
+      AssumeRolePolicyDocument:
+        Version: '2008-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 'monitoring.rds.amazonaws.com'
+          Action: 'sts:AssumeRole'
+
+  #
+  # RDS - Parameter Group
+  #
+  DBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties: 
+      Description: 'This is cluster parameter group of aurora-postgresql13'
+      Family: aurora-postgresql13
+      Parameters:
+        timezone: US/Eastern
+        synchronous_commit: 'on'
+
+  #
+  # RDS - Parameter Group
+  #
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: 'This is parameter group of aurora-postgresql13'
+      Family: aurora-postgresql13
+      # Parameters: 
+      #   Key : Value
+
+  #
+  # RDS - Subnet Group
+  #
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: 'This is subnet group of example'
+      DBSubnetGroupName: aurora-postgresql-subnet-group
+      SubnetIds: !Ref SubnetIds
+
+  #
+  # RDS - DBCluster
+  #
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties: 
+      DBClusterIdentifier: aurora-postgresql-secondary-cluster
+      GlobalClusterIdentifier: !Ref GlobalClusterIdentifier
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      Engine: aurora-postgresql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql
+      # EngineMode:  # provisioned , serverless , parallelquery , global , multimaster
+      EngineVersion: '13.6'
+      EnableCloudwatchLogsExports: # postgresql
+        - postgresql
+      Port: 5432
+      # DeletionProtection: false
+      BackupRetentionPeriod: 7 # days
+      CopyTagsToSnapshot: true
+      # PreferredBackupWindow: String
+      # PreferredMaintenanceWindow: String
+      StorageEncrypted: true
+      KmsKeyId: 'alias/aws/rds'
+      VpcSecurityGroupIds: !Ref SecurityGroupIds
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # RDS - DBInstance (first)
+  #
+  DBInstance1:
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: aurora-postgresql-secondary-instance-1
+      Engine: aurora-postgresql
+      # EngineVersion: '13.6'
+      DBInstanceClass: db.r6g.large
+      DBParameterGroupName: !Ref DBParameterGroup
+      PubliclyAccessible: false
+      MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
+      MonitoringRoleArn: !GetAtt MonitoringRole.Arn
+      DeleteAutomatedBackups: false    
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      EnablePerformanceInsights: true # it does support aurora postgresql
+      # PerformanceInsightsKMSKeyId: String
+      PerformanceInsightsRetentionPeriod: 7 # 7 , 731 (days)
+      Tags: 
+        - Key: key01
+          Value: value01
+  
+  #
+  # RDS - DBInstance (second)
+  #
+  DBInstance2:
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: aurora-postgresql-secondary-instance-2
+      Engine: aurora-postgresql
+      # EngineVersion: '13.6'
+      DBInstanceClass: db.r6g.large
+      DBParameterGroupName: !Ref DBParameterGroup
+      PubliclyAccessible: false
+      MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
+      MonitoringRoleArn: !GetAtt MonitoringRole.Arn
+      DeleteAutomatedBackups: false    
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      EnablePerformanceInsights: true # it does support aurora postgresql
+      # PerformanceInsightsKMSKeyId: String
+      PerformanceInsightsRetentionPeriod: 7 # 7 , 731 (days)
+      Tags: 
+        - Key: key01
+          Value: value01

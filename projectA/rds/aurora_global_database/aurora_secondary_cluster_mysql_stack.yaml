@@ -1,0 +1,143 @@
+
+Parameters:
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  GlobalClusterIdentifier:
+    Description: GlobalClusterIdentifier
+    Type: String
+
+Resources:
+  #
+  # IAM - Role (for RDS Monitoring)
+  #
+  MonitoringRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      ManagedPolicyArns:
+      - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
+      AssumeRolePolicyDocument:
+        Version: '2008-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 'monitoring.rds.amazonaws.com'
+          Action: 'sts:AssumeRole'
+
+  #
+  # RDS - Cluster Parameter Group
+  #
+  DBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties: 
+      Description: 'This is cluster parameter group of aurora-mysql5.7'
+      Family: aurora-mysql5.7
+      Parameters:
+        time_zone: US/Eastern
+        character_set_database: utf8mb4
+
+  #
+  # RDS - Parameter Group
+  #
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: 'This is parameter group of aurora-mysql5.7'
+      Family: aurora-mysql5.7
+      # Parameters: 
+      #   Key : Value
+
+  #
+  # RDS - Subnet Group
+  #
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: 'This is subnet group of example'
+      DBSubnetGroupName: aurora-mysql-subnet-group
+      SubnetIds: !Ref SubnetIds
+
+  #
+  # RDS - DBCluster
+  #
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties: 
+      DBClusterIdentifier: aurora-mysql-secondary-cluster
+      GlobalClusterIdentifier: !Ref GlobalClusterIdentifier
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      Engine: aurora-mysql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql
+      # EngineMode:  # provisioned , serverless , parallelquery , global , multimaster
+      EngineVersion: 5.7.mysql_aurora.2.10.2
+      EnableCloudwatchLogsExports: # audit , error , general , slowquery
+        - audit
+        - error
+        - general
+        - slowquery
+      # EnableIAMDatabaseAuthentication: true
+      # MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref MasterUserSecret, ':SecretString:username}}' ]]
+      # MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref MasterUserSecret, ':SecretString:password}}' ]]
+      Port: 3306
+      # DeletionProtection: false
+      # BacktrackWindow: 24 # hours
+      BackupRetentionPeriod: 7 # days
+      CopyTagsToSnapshot: true
+      # PreferredBackupWindow: String
+      # PreferredMaintenanceWindow: String
+      StorageEncrypted: true
+      KmsKeyId: 'alias/aws/rds'
+      VpcSecurityGroupIds: !Ref SecurityGroupIds
+      # DatabaseName: exampledb
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # RDS - DBInstance (first)
+  #
+  DBInstance1:
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: aurora-mysql-secondary-instance-1
+      Engine: aurora-mysql
+      # EngineVersion: 5.7.mysql_aurora.2.10.2
+      DBInstanceClass: db.r6g.large
+      DBParameterGroupName: !Ref DBParameterGroup
+      PubliclyAccessible: false
+      MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
+      MonitoringRoleArn: !GetAtt MonitoringRole.Arn
+      DeleteAutomatedBackups: false    
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      Tags: 
+        - Key: key01
+          Value: value01
+      
+  #
+  # RDS - DBInstance (second)
+  #
+  DBInstance2:
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: aurora-mysql-secondary-instance-2
+      Engine: aurora-mysql
+      # EngineVersion: 5.7.mysql_aurora.2.10.2
+      DBInstanceClass: db.r6g.large
+      DBParameterGroupName: !Ref DBParameterGroup
+      PubliclyAccessible: false
+      MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
+      MonitoringRoleArn: !GetAtt MonitoringRole.Arn
+      DeleteAutomatedBackups: false    
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      Tags: 
+        - Key: key01
+          Value: value01
