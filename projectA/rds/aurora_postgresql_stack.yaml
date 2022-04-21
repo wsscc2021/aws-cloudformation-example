@@ -119,7 +119,7 @@ Resources:
       DBInstanceIdentifier: aurora-postgresql-instance-1
       Engine: aurora-postgresql
       # EngineVersion: '13.6'
-      DBInstanceClass: db.t4g.medium
+      DBInstanceClass: db.r6g.large
       DBParameterGroupName: !Ref DBParameterGroup
       PubliclyAccessible: false
       MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
@@ -145,7 +145,7 @@ Resources:
       DBInstanceIdentifier: aurora-postgresql-instance-2
       Engine: aurora-postgresql
       # EngineVersion: '13.6'
-      DBInstanceClass: db.t4g.medium
+      DBInstanceClass: db.r6g.large
       DBParameterGroupName: !Ref DBParameterGroup
       PubliclyAccessible: false
       MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60

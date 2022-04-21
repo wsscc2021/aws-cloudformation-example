@@ -125,7 +125,7 @@ Resources:
       DBInstanceIdentifier: aurora-mysql-instance-1
       Engine: aurora-mysql
       # EngineVersion: 5.7.mysql_aurora.2.10.2
-      DBInstanceClass: db.t3.small
+      DBInstanceClass: db.r6g.large
       DBParameterGroupName: !Ref DBParameterGroup
       PubliclyAccessible: false
       MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
@@ -148,7 +148,7 @@ Resources:
       DBInstanceIdentifier: aurora-mysql-instance-2
       Engine: aurora-mysql
       # EngineVersion: 5.7.mysql_aurora.2.10.2
-      DBInstanceClass: db.t3.small
+      DBInstanceClass: db.r6g.large
       DBParameterGroupName: !Ref DBParameterGroup
       PubliclyAccessible: false
       MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
