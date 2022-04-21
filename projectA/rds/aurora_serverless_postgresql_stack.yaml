@@ -1,0 +1,85 @@
+
+Parameters:
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+Resources:  
+  #
+  # Secrets Manager - Secret
+  #
+  MasterUserSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: 'rds/aurora-postgresql-serverless/postgres'
+      Description: 'This is secret of rds username and password'
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "postgres"}'
+        GenerateStringKey: 'password'
+        ExcludeCharacters: '"@/\'
+        PasswordLength: 16
+
+  #
+  # Secrets Manager - TargetAttachment
+  #
+  MasterUserSecretTargetAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref MasterUserSecret
+      TargetId: !Ref DBCluster
+      TargetType: AWS::RDS::DBCluster
+
+  #
+  # RDS - Parameter Group
+  #
+  DBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties: 
+      Description: 'This is cluster parameter group of aurora-postgresql10'
+      Family: aurora-postgresql10
+      Parameters:
+        timezone: US/Eastern
+        synchronous_commit: 'on'
+
+  #
+  # RDS - Subnet Group
+  #
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: 'This is subnet group of example'
+      DBSubnetGroupName: aurora-postgresql-serverless-subnet-group
+      SubnetIds: !Ref SubnetIds
+
+  #
+  # RDS - Aurora Serverless Postgresql
+  #
+  DBCluster:
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      DBClusterIdentifier: aurora-postgresql-serverless-cluster
+      Engine: aurora-postgresql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql
+      EngineMode: serverless # provisioned , serverless , parallelquery , global , multimaster
+      EngineVersion: '10.14'
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      DatabaseName: exampledb
+      DeletionProtection: false
+      BackupRetentionPeriod: 7 # days
+      CopyTagsToSnapshot: true
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref MasterUserSecret, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref MasterUserSecret, ':SecretString:password}}' ]]
+      StorageEncrypted: true
+      # KmsKeyId: String
+      VpcSecurityGroupIds: !Ref SecurityGroupIds
+      EnableHttpEndpoint: true
+      ScalingConfiguration:
+        AutoPause: true
+        MaxCapacity: 64 # (postgres) 2 , 4 , 8 , 16 , 32 ,64 , 192 , 384
+        MinCapacity: 2  # (postgres) 2 , 4 , 8 , 16 , 32 ,64 , 192 , 384
+        SecondsUntilAutoPause: 300 # 300 ~ 86,400 (second)
+      Tags: 
+        - Key: key01
+          Value: value01
