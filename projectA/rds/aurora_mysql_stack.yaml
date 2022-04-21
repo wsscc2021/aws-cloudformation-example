@@ -1,9 +1,9 @@
 
 Parameters:
-  Subnets:
+  SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
   
-  SecurityGroups:
+  SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
 Resources:
@@ -26,7 +26,7 @@ Resources:
   #
   # Secrets Manager - Secret
   #
-  AuroraMasterSecret:
+  MasterUserSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
       Name: 'rds/aurora-mysql/admin'
@@ -40,17 +40,17 @@ Resources:
   #
   # Secrets Manager - TargetAttachment
   #
-  AuroraMasterSecretTargetAttachment:
+  MasterUserSecretTargetAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment
     Properties:
-      SecretId: !Ref AuroraMasterSecret
-      TargetId: !Ref AuroraMySQLCluster
+      SecretId: !Ref MasterUserSecret
+      TargetId: !Ref DBCluster
       TargetType: AWS::RDS::DBCluster
 
   #
   # RDS - Cluster Parameter Group
   #
-  ClusterParameterGroup:                                    
+  DBClusterParameterGroup:
     Type: AWS::RDS::DBClusterParameterGroup
     Properties: 
       Description: 'This is cluster parameter group of aurora-mysql5.7'
@@ -62,7 +62,7 @@ Resources:
   #
   # RDS - Parameter Group
   #
-  ParameterGroup:
+  DBParameterGroup:
     Type: AWS::RDS::DBParameterGroup
     Properties: 
       Description: 'This is parameter group of aurora-mysql5.7'
@@ -73,22 +73,22 @@ Resources:
   #
   # RDS - Subnet Group
   #
-  SubnetGroup:
+  DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: 'This is subnet group of example'
       DBSubnetGroupName: aurora-mysql-subnet-group
-      SubnetIds: !Ref Subnets
+      SubnetIds: !Ref SubnetIds
   
   #
   # RDS - DBCluster
   #
-  AuroraMySQLCluster:
+  DBCluster:
     Type: AWS::RDS::DBCluster
     Properties: 
       DBClusterIdentifier: aurora-mysql-cluster
-      DBClusterParameterGroupName: !Ref ClusterParameterGroup
-      DBSubnetGroupName: !Ref SubnetGroup
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
       Engine: aurora-mysql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql
       EngineMode: provisioned # provisioned , serverless , parallelquery , global , multimaster
       EngineVersion: 5.7.mysql_aurora.2.10.2
@@ -98,8 +98,8 @@ Resources:
         - general
         - slowquery
       EnableIAMDatabaseAuthentication: true
-      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:username}}' ]]
-      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:password}}' ]]
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref MasterUserSecret, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref MasterUserSecret, ':SecretString:password}}' ]]
       Port: 3306
       DeletionProtection: false
       # BacktrackWindow: 24 # hours
@@ -109,7 +109,7 @@ Resources:
       # PreferredMaintenanceWindow: String
       StorageEncrypted: true
       # KmsKeyId: String
-      VpcSecurityGroupIds: !Ref SecurityGroups
+      VpcSecurityGroupIds: !Ref SecurityGroupIds
       DatabaseName: exampledb
       Tags: 
         - Key: key01
@@ -118,15 +118,15 @@ Resources:
   #
   # RDS - DBInstance (first)
   #
-  AuroraMySQLInstance1:
+  DBInstance1:
     Type: AWS::RDS::DBInstance
     Properties: 
-      DBClusterIdentifier: !Ref AuroraMySQLCluster
+      DBClusterIdentifier: !Ref DBCluster
       DBInstanceIdentifier: aurora-mysql-instance-1
       Engine: aurora-mysql
       # EngineVersion: 5.7.mysql_aurora.2.10.2
       DBInstanceClass: db.t3.small
-      DBParameterGroupName: !Ref ParameterGroup
+      DBParameterGroupName: !Ref DBParameterGroup
       PubliclyAccessible: false
       MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
       MonitoringRoleArn: !GetAtt MonitoringRole.Arn
@@ -141,15 +141,15 @@ Resources:
   #
   # RDS - DBInstance (second)
   #
-  AuroraMySQLInstance2:
+  DBInstance2:
     Type: AWS::RDS::DBInstance
     Properties: 
-      DBClusterIdentifier: !Ref AuroraMySQLCluster
+      DBClusterIdentifier: !Ref DBCluster
       DBInstanceIdentifier: aurora-mysql-instance-2
       Engine: aurora-mysql
       # EngineVersion: 5.7.mysql_aurora.2.10.2
       DBInstanceClass: db.t3.small
-      DBParameterGroupName: !Ref ParameterGroup
+      DBParameterGroupName: !Ref DBParameterGroup
       PubliclyAccessible: false
       MonitoringInterval: 60 # 0 , 1 , 5 , 10 , 15 , 30 , 60
       MonitoringRoleArn: !GetAtt MonitoringRole.Arn

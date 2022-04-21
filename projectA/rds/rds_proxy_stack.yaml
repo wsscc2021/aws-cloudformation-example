@@ -1,8 +1,8 @@
 Parameters:
-  Subnets:
+  SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
   
-  SecurityGroups:
+  SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
   
   SecretId:
@@ -73,8 +73,8 @@ Resources:
       Tags: 
         - Key: key01
           Value: value01
-      VpcSecurityGroupIds: !Ref SecurityGroups
-      VpcSubnetIds: !Ref Subnets
+      VpcSecurityGroupIds: !Ref SecurityGroupIds
+      VpcSubnetIds: !Ref SubnetIds
 
   #
   # RDS - DBProxyTargetGroup
