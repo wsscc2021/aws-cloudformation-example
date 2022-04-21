@@ -20,8 +20,8 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: example-ec2-role
-      Description: description
+      # RoleName: example-ec2-role
+      # Description: description
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -54,10 +54,10 @@ Resources:
     Type: AWS::IAM::InstanceProfile
     DependsOn: Role
     Properties: 
-      InstanceProfileName: example-ec2-instance-profile
+      # InstanceProfileName: example-ec2-instance-profile
       Path: /
       Roles: 
-        - example-ec2-role
+        - !Ref Role
 
   #
   # LaunchTemplate
