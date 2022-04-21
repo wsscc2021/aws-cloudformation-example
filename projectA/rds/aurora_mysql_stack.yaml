@@ -102,7 +102,7 @@ Resources:
       MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:password}}' ]]
       Port: 3306
       DeletionProtection: false
-      BacktrackWindow: 24 # hours
+      # BacktrackWindow: 24 # hours
       BackupRetentionPeriod: 7 # days
       CopyTagsToSnapshot: true
       # PreferredBackupWindow: String
