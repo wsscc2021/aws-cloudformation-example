@@ -1,0 +1,95 @@
+
+Resources:
+  #
+  # DynamoDB - Table
+  #
+  Table:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      TableName: 'playlist'
+      TableClass: STANDARD # STANDARD , STANDARD_INFREQUENT_ACCESS
+      KeySchema: 
+        - AttributeName: 'Album'
+          KeyType: HASH # HASH (PartitionKey), RANGE (SortKey)
+        - AttributeName: 'Artist'
+          KeyType: RANGE # HASH (PartitionKey), RANGE (SortKey)
+      AttributeDefinitions: 
+        - AttributeName: 'Album'
+          AttributeType: S # S (String) , B (Binary) , N (Number)
+        - AttributeName: 'Artist'
+          AttributeType: S # S (String) , B (Binary) , N (Number)
+      BillingMode: PROVISIONED # PROVISIONED , PAY_PER_REQUEST 
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 10
+        WriteCapacityUnits: 10
+      SSESpecification: 
+        # KMSMasterKeyId: String
+        SSEEnabled: true
+        SSEType: KMS
+      ContributorInsightsSpecification: 
+        Enabled: true
+      PointInTimeRecoverySpecification: 
+        PointInTimeRecoveryEnabled: true
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # Application Auto Scaling - Scalable Target (for write)
+  #
+  TableWriteCapacityScalableTarget: 
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: Table
+    Properties: 
+      MaxCapacity: 1000
+      MinCapacity: 10
+      ResourceId: !Sub table/${Table}
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
+      ScalableDimension: "dynamodb:table:WriteCapacityUnits"
+      ServiceNamespace: dynamodb
+  
+  #
+  # Application Auto Scaling - Policy (for write)
+  #
+  TableWriteScalingPolicy: 
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties: 
+      PolicyName: WriteAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref TableWriteCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration: 
+        TargetValue: 70
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification: 
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
+  
+  #
+  # Application Auto Scaling - Scalable Target (for read)
+  #
+  TableReadCapacityScalableTarget: 
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: Table
+    Properties: 
+      MaxCapacity: 1000
+      MinCapacity: 10
+      ResourceId: !Sub table/${Table}
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable
+      ScalableDimension: "dynamodb:table:ReadCapacityUnits"
+      ServiceNamespace: dynamodb
+  
+  #
+  # Application Auto Scaling - Policy (for read)
+  #
+  TableReadScalingPolicy: 
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties: 
+      PolicyName: ReadAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref TableReadCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration: 
+        TargetValue: 70
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification: 
+          PredefinedMetricType: DynamoDBReadCapacityUtilization
