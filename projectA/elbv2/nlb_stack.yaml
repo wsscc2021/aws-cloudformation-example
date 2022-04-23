@@ -3,7 +3,7 @@ Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
   
-  Subnets:
+  SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
   
 Resources:
@@ -46,7 +46,7 @@ Resources:
       # LoadBalancerAttributes: 
       #   - key: load_balancing.cross_zone.enabled
       #     value: true
-      Subnets: !Ref Subnets
+      Subnets: !Ref SubnetIds
       Tags: 
         - Key: key01
           Value: value01

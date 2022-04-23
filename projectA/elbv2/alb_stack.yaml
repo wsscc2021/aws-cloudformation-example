@@ -3,10 +3,10 @@ Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
   
-  Subnets:
+  SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
 
-  SecurityGroups:
+  SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
   
 Resources:
@@ -51,8 +51,8 @@ Resources:
       LoadBalancerAttributes: 
         - Key: routing.http2.enabled
           Value: true
-      SecurityGroups: !Ref SecurityGroups
-      Subnets: !Ref Subnets
+      SecurityGroups: !Ref SecurityGroupIds
+      Subnets: !Ref SubnetIds
       Tags: 
         - Key: key01
           Value: value01
@@ -75,8 +75,3 @@ Resources:
       LoadBalancerArn: !Ref ApplicationLoadBalancer
       Port: 80
       Protocol: HTTP # GENEVE , HTTP , HTTPS , TCP , TCP_UDP , TLS , UDP
-
-Outputs:
-  TargetGroupArn:
-    Description: An Arn of example target group
-    Value: !Ref TargetGroup
