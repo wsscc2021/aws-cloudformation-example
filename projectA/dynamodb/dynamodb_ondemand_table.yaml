@@ -1,0 +1,35 @@
+
+Resources:
+  #
+  # DynamoDB - Table
+  #
+  Table:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      TableName: 'playlist'
+      TableClass: STANDARD # STANDARD , STANDARD_INFREQUENT_ACCESS
+      KeySchema: 
+        - AttributeName: 'Album'
+          KeyType: HASH # HASH (PartitionKey), RANGE (SortKey)
+        - AttributeName: 'Artist'
+          KeyType: RANGE # HASH (PartitionKey), RANGE (SortKey)
+      AttributeDefinitions: 
+        - AttributeName: 'Album'
+          AttributeType: S # S (String) , B (Binary) , N (Number)
+        - AttributeName: 'Artist'
+          AttributeType: S # S (String) , B (Binary) , N (Number)
+      BillingMode: PAY_PER_REQUEST # PROVISIONED , PAY_PER_REQUEST 
+      # ProvisionedThroughput: 
+      #   ReadCapacityUnits: 10
+      #   WriteCapacityUnits: 10
+      SSESpecification: 
+        # KMSMasterKeyId: String
+        SSEEnabled: true
+        SSEType: KMS
+      ContributorInsightsSpecification: 
+        Enabled: true
+      PointInTimeRecoverySpecification: 
+        PointInTimeRecoveryEnabled: true
+      Tags: 
+        - Key: key01
+          Value: value01
