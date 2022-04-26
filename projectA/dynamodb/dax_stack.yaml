@@ -1,0 +1,79 @@
+
+Parameters:
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  TableName:
+    Type: String
+
+
+Resources:
+  #
+  # IAM - Role (for DAX clsuter nodes)
+  #
+  DAXRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service: "dax.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: DAX
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: "Allow"
+                Action: "dynamodb:*"
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}"
+
+  #
+  # DAX - Subnet Group
+  #
+  DAXSubnetGroup:
+    Type: AWS::DAX::SubnetGroup
+    Properties: 
+      SubnetGroupName: example-dax-subnet-group
+      SubnetIds: !Ref SubnetIds
+
+  #
+  # DAX - Parameter Group
+  #
+  DAXParameterGroup:
+    Type: AWS::DAX::ParameterGroup
+    Properties: 
+      ParameterGroupName: example-dax-parameter-group
+      ParameterNameValues: 
+        "record-ttl-millis": "300000"
+        "query-ttl-millis": "300000"
+
+  #
+  # DAX - Cluster
+  #
+  DAXCluster:
+    Type: AWS::DAX::Cluster
+    Properties: 
+      # AvailabilityZones: 
+      #   - String
+      ClusterEndpointEncryptionType: TLS
+      ClusterName: example-dax-cluster
+      # Description: String
+      IAMRoleARN: !GetAtt DAXRole.Arn
+      NodeType: "dax.r5.large"
+      # NotificationTopicARN: String
+      SubnetGroupName: !Ref DAXSubnetGroup
+      ParameterGroupName: !Ref DAXParameterGroup
+      # PreferredMaintenanceWindow: String
+      ReplicationFactor: 3
+      SecurityGroupIds: !Ref SecurityGroupIds
+      SSESpecification: 
+        SSEEnabled: true
+      # Tags: Json
