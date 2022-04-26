@@ -1,0 +1,98 @@
+
+Parameters:
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+Resources:
+  #
+  # Cloudwatch Logs - Log Group
+  #
+  ElasticacheLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /elasticache/example-redis
+      RetentionInDays: 7 # days
+
+  #
+  # Elasticache - Parameter Group
+  #
+  ElasticacheParameterGroup:
+    Type: AWS::ElastiCache::ParameterGroup
+    Properties: 
+      # memcached1.4 | memcached1.5 | memcached1.6 
+      # redis2.6 | redis2.8 | redis3.2 | redis4.0 | redis5.0 | redis6.x
+      CacheParameterGroupFamily: redis6.x
+      Description: This is redis parameter group
+      Properties: 
+        cluster-enabled: 'no'
+
+  #
+  # Elasticache - Subnet Group
+  #
+  ElasticacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties: 
+      # CacheSubnetGroupName: String
+      Description: This is redis subnet group
+      SubnetIds: !Ref SubnetIds
+  
+  #
+  # Elasticache - Replication Group
+  #
+  ElasticacheReplicationGroup:
+    Type: AWS::ElastiCache::ReplicationGroup
+    Properties: 
+      ReplicationGroupId: example-redis
+      ReplicationGroupDescription: This is Elasticache Redis (cluster mode disabled)
+      Engine: redis # memcached | redis
+      EngineVersion: '6.2'  # aws elasticache describe-cache-engine-versions
+      CacheNodeType: cache.m6g.large
+      NumNodeGroups: 1 # shard number
+      ReplicasPerNodeGroup: 2
+      Port: 6379
+      CacheParameterGroupName: !Ref ElasticacheParameterGroup
+      CacheSubnetGroupName: !Ref ElasticacheSubnetGroup
+      SecurityGroupIds: !Ref SecurityGroupIds
+      MultiAZEnabled: true
+      AutomaticFailoverEnabled: true
+      AtRestEncryptionEnabled: true
+      TransitEncryptionEnabled: true
+      # KmsKeyId: String
+      # AuthToken: String
+      AutoMinorVersionUpgrade: true
+      # SnapshotWindow: String
+      SnapshotRetentionLimit: 1
+      # DataTieringEnabled: Boolean
+      LogDeliveryConfigurations: 
+        - DestinationDetails: 
+            CloudWatchLogsDetails: 
+              LogGroup: !Ref ElasticacheLogGroup
+          DestinationType: cloudwatch-logs # cloudwatch-logs | kinesis-firehose
+          LogFormat: json # json | text
+          LogType: slow-log # slow-log | engine-log
+        - DestinationDetails: 
+            CloudWatchLogsDetails: 
+              LogGroup: !Ref ElasticacheLogGroup
+          DestinationType: cloudwatch-logs # cloudwatch-logs | kinesis-firehose
+          LogFormat: json # json | text
+          LogType: engine-log # slow-log | engine-log
+      # GlobalReplicationGroupId: String
+      # NodeGroupConfiguration: 
+      #   - NodeGroupConfiguration
+      # NotificationTopicArn: String
+      # NumCacheClusters: Integer
+      # PreferredCacheClusterAZs: 
+      #   - String
+      # PreferredMaintenanceWindow: String
+      # PrimaryClusterId: String
+      # SnapshotArns: 
+      #   - String
+      # SnapshotName: String
+      # SnapshottingClusterId: String
+      # Tags: 
+      #   - Tag
+      # UserGroupIds: 
+      #   - String
