@@ -1,0 +1,36 @@
+
+Parameters:
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  GlobalReplicationGroupId:
+    Type: String
+
+Resources:
+  #
+  # Elasticache - Subnet Group
+  #
+  ElasticacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties: 
+      # CacheSubnetGroupName: String
+      Description: This is redis cluster subnet group
+      SubnetIds: !Ref SubnetIds
+
+  #
+  # Elasticache - Replication Group
+  #
+  ElasticacheReplicationGroup:
+    Type: AWS::ElastiCache::ReplicationGroup
+    Properties: 
+      GlobalReplicationGroupId: !Ref GlobalReplicationGroupId
+      ReplicationGroupId: example-redis-cluster-secondary
+      ReplicationGroupDescription: This is Elasticache Redis (cluster mode enabled)
+      ReplicasPerNodeGroup: 2
+      # Port: 6379
+      CacheSubnetGroupName: !Ref ElasticacheSubnetGroup
+      SecurityGroupIds: !Ref SecurityGroupIds
+      MultiAZEnabled: true

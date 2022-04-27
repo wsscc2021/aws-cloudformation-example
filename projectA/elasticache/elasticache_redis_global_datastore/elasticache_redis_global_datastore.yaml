@@ -1,0 +1,17 @@
+
+Parameters:
+  PrimaryReplicationGroupId:
+    Type: String
+
+Resources:
+  #
+  # Elasticache - Global Replication Group
+  #
+  ElasticacheGlobalReplicationGroup:
+    Type: AWS::ElastiCache::GlobalReplicationGroup
+    Properties: 
+      AutomaticFailoverEnabled: true
+      GlobalReplicationGroupIdSuffix: example-redis-global
+      Members: 
+        - ReplicationGroupId: !Ref PrimaryReplicationGroupId
+          Role: PRIMARY # PRIMARY | SECONDARY
