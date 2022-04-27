@@ -1,0 +1,55 @@
+
+Parameters:
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+Resources:
+  #
+  # MemoryDB - Parameter Group
+  #
+  MemoryDBParameterGroup:
+    Type: AWS::MemoryDB::ParameterGroup
+    Properties: 
+      # Description: String
+      ParameterGroupName: example-memorydb-parameter-group
+      Family: memorydb_redis6
+      # Parameters: Json
+
+  #
+  # MemoryDB - Subnet Group
+  #
+  MemoryDBSubnetGroup:
+    Type: AWS::MemoryDB::SubnetGroup
+    Properties: 
+      # Description: String
+      SubnetGroupName: example-memorydb-subnet-group
+      SubnetIds: !Ref SubnetIds
+
+
+  #
+  # MemoryDB - Cluster
+  #
+  MemoryDBCluster:
+    Type: AWS::MemoryDB::Cluster
+    Properties: 
+      ACLName: open-access
+      AutoMinorVersionUpgrade: true
+      ClusterName: example-memorydb-cluster
+      # Description: String
+      EngineVersion: '6.2'
+      # KmsKeyId: String
+      NodeType: db.r6g.large
+      NumReplicasPerShard: 2
+      NumShards: 3
+      ParameterGroupName: !Ref MemoryDBParameterGroup
+      Port: 6379
+      SecurityGroupIds: !Ref SecurityGroupIds
+      SubnetGroupName: !Ref MemoryDBSubnetGroup
+      TLSEnabled: true
+      SnapshotRetentionLimit: 1
+      # SnapshotWindow: String
+      # SnapshotArns: 
+      #   - String
