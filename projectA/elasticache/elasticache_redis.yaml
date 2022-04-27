@@ -79,20 +79,7 @@ Resources:
           DestinationType: cloudwatch-logs # cloudwatch-logs | kinesis-firehose
           LogFormat: json # json | text
           LogType: engine-log # slow-log | engine-log
-      # GlobalReplicationGroupId: String
-      # NodeGroupConfiguration: 
-      #   - NodeGroupConfiguration
-      # NotificationTopicArn: String
-      # NumCacheClusters: Integer
-      # PreferredCacheClusterAZs: 
-      #   - String
-      # PreferredMaintenanceWindow: String
-      # PrimaryClusterId: String
       # SnapshotArns: 
       #   - String
-      # SnapshotName: String
-      # SnapshottingClusterId: String
-      # Tags: 
-      #   - Tag
       # UserGroupIds: 
       #   - String
