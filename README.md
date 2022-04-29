@@ -1,5 +1,5 @@
 
-# AWS-CloudFormation-Example
+# AWS cloudformation example
 
 This example of cloudformation template can write code more detailed configuration than aws-cdk.
 
