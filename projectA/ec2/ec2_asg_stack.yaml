@@ -1,9 +1,9 @@
 
 Parameters:
-  Subnets:
+  SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
 
-  SecurityGroups:
+  SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
   KeyPair:
@@ -85,7 +85,7 @@ Resources:
         InstanceType: t3.small
         KeyName: !Ref KeyPair
         # Monitoring: 
-        SecurityGroupIds: !Ref SecurityGroups
+        SecurityGroupIds: !Ref SecurityGroupIds
         TagSpecifications: 
           - ResourceType: instance # instance, volume
             Tags: 
@@ -130,4 +130,4 @@ Resources:
           Value: example-ec2
       # TargetGroupARNs: 
       #   - String
-      VPCZoneIdentifier: !Ref Subnets
+      VPCZoneIdentifier: !Ref SubnetIds
