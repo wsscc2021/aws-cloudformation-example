@@ -1,0 +1,133 @@
+
+Resources:
+  #
+  # IAM Role (for TaskExecutionRole)
+  #
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: ecs-task-execution-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+      # Policies: 
+      #   - PolicyName: dynamodb-query
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'dynamodb:Query'
+      #             - 'dynamodb:Scan'
+      #           Resource: '*'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # IAM Role (for TaskRole)
+  #
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: ecs-task-execution-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+      # Policies: 
+      #   - PolicyName: dynamodb-query
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'dynamodb:Query'
+      #             - 'dynamodb:Scan'
+      #           Resource: '*'
+      # ManagedPolicyArns: 
+      #   - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # ECS - Task Definition
+  #
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties: 
+      Family: foo-webapp-td
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      NetworkMode: awsvpc # awsvpc | bridge | host | none
+      RequiresCompatibilities: # EC2 | FARGATE | EXTERNAL
+        - EC2
+      Cpu: 1024
+      Memory: 1536
+      # EphemeralStorage: 
+      #   EphemeralStorage
+      # PlacementConstraints: 
+      #   - TaskDefinitionPlacementConstraint
+      # ProxyConfiguration: # app mesh
+      #   ProxyConfiguration
+      # RuntimePlatform: 
+      #   RuntimePlatform
+      # Volumes: 
+      #   - Volume
+      ContainerDefinitions: 
+        - 
+          Name: webapp
+          Image: 242593025403.dkr.ecr.us-east-1.amazonaws.com/python-helloworld:v1
+          Cpu: 1024
+          Memory: 1536
+          MemoryReservation: 1536
+          Essential: true
+          Privileged: false
+          PortMappings: 
+            - ContainerPort: 5000
+              HostPort: 5000
+              Protocol: tcp # tcp | udp
+          # EntryPoint: 
+          #   - String
+          # Command: # CMD
+          #   - String
+          # Environment: 
+          #   - KeyValuePair
+          # EnvironmentFiles: 
+          #   - EnvironmentFile
+          # LogConfiguration: 
+          #   LogConfiguration
+          # FirelensConfiguration: 
+          #   FirelensConfiguration
+          # HealthCheck: 
+          #   HealthCheck
+          # MountPoints: 
+          #   - MountPoint
+          # RepositoryCredentials: 
+          #   RepositoryCredentials
+          # Secrets: 
+          #   - Secret
+          # StartTimeout: Integer
+          # StopTimeout: Integer
+          # SystemControls: 
+          #   - SystemControl
+          # User: String
+          # VolumesFrom: 
+          #   - VolumeFrom
+          # WorkingDirectory: String
