@@ -15,7 +15,7 @@ Resources:
         ManagedScaling: 
           InstanceWarmupPeriod: 120
           MaximumScalingStepSize: 20
-          MinimumScalingStepSize: 2
+          MinimumScalingStepSize: 1
           Status: ENABLED # DISABLED | ENABLED
           TargetCapacity: 100 # 1 ~ 100 (%)
         ManagedTerminationProtection: ENABLED # DISABLED | ENABLED
