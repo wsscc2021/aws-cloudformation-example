@@ -54,6 +54,17 @@ Resources:
         - Key: Name
           Value: example-public-subnet-b
 
+  PublicSubnetC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1c
+      CidrBlock: 10.10.3.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: example-public-subnet-c
+
   #
   # Private Subnet
   #
@@ -79,6 +90,17 @@ Resources:
         - Key: Name
           Value: example-private-subnet-b
 
+  PrivateSubnetC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1c
+      CidrBlock: 10.10.13.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: example-private-subnet-c
+
   #
   # Data Subnet
   #
@@ -103,6 +125,17 @@ Resources:
       Tags:
         - Key: Name
           Value: example-data-subnet-b
+
+  DataSubnetC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: us-east-1c
+      CidrBlock: 10.10.23.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: example-data-subnet-c
 
   #
   # NAT Gateway - EIP
@@ -130,6 +163,18 @@ Resources:
     Properties:
       AllocationId: !GetAtt NatGatewayBEIP.AllocationId
       SubnetId: !Ref PublicSubnetB
+
+  NatGatewayCEIP:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+
+  NatGatewayC:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayCEIP.AllocationId
+      SubnetId: !Ref PublicSubnetC
 
   #
   # Public RouteTable
@@ -161,6 +206,12 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnetB
+
+  PublicSubnetCRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetC
 
   #
   # Private RouteTable
@@ -207,6 +258,27 @@ Resources:
       RouteTableId: !Ref PrivateRouteTableB
       SubnetId: !Ref PrivateSubnetB
 
+  PrivateRouteTableC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: example-private-rt-c
+
+  DefaultPrivateRouteC:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref PrivateRouteTableC
+      NatGatewayId: !Ref NatGatewayC
+
+  PrivateSubnetCRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableC
+      SubnetId: !Ref PrivateSubnetC
+
   #
   # Data RouteTable
   #
@@ -229,32 +301,9 @@ Resources:
     Properties:
       RouteTableId: !Ref DataRouteTable
       SubnetId: !Ref DataSubnetB
-
-Outputs:
-  VPC:
-    Description: A reference to the created VPC
-    Value: !Ref VPC
-
-  PublicSubnets:
-    Description: A list of the public subnets
-    Value: !Join [ ",", [ !Ref PublicSubnetA, !Ref PublicSubnetB, ]]
-
-  PrivateSubnets:
-    Description: A list of the private subnets
-    Value: !Join [ ",", [ !Ref PrivateSubnetA, !Ref PrivateSubnetB, ]]
   
-  DataSubnets:
-    Description: A list of the private subnets
-    Value: !Join [ ",", [ !Ref DataSubnetA, !Ref DataSubnetB, ]]
-  
-  PublicRouteTable:
-    Description: A id of public route table
-    Value: !Ref PublicRouteTable
-  
-  PrivateRouteTables:
-    Description: A list of the private route tables
-    Value: !Join [ ",", [ !Ref PrivateRouteTableA, !Ref PrivateRouteTableB, ]]
-  
-  DataRouteTable:
-    Description: A id of data route table
-    Value: !Ref DataRouteTable
+  DataSubnetCRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref DataRouteTable
+      SubnetId: !Ref DataSubnetC
