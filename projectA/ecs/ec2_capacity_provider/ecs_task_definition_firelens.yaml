@@ -1,0 +1,173 @@
+
+Resources:
+  #
+  # IAM Role (for TaskExecutionRole)
+  #
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: ecs-task-execution-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+      # Policies: 
+      #   - PolicyName: dynamodb-query
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'logs:CreateLogGroup'
+      #             - 'dynamodb:Scan'
+      #           Resource: '*'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # IAM Role (for TaskRole)
+  #
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: ecs-task-execution-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+      Policies: 
+        - PolicyName: Firelens-CloudwatchLogs
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:DescribeLogStreams'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+      # ManagedPolicyArns: 
+      #   - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # CloudwatchLogs - Log Group
+  #
+  FirelensLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: /ecs/firelens-container
+      RetentionInDays: 14
+
+  #
+  # ECS - Task Definition
+  #
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    UpdateReplacePolicy: Retain
+    Properties: 
+      Family: foo-webapp-td
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      NetworkMode: awsvpc # awsvpc | bridge | host | none
+      RequiresCompatibilities: # EC2 | FARGATE | EXTERNAL
+        - EC2
+      Cpu: 512
+      Memory: 1024
+      # EphemeralStorage: 
+      #   EphemeralStorage
+      # PlacementConstraints: 
+      #   - TaskDefinitionPlacementConstraint
+      # ProxyConfiguration: # app mesh
+      #   ProxyConfiguration
+      # RuntimePlatform: 
+      #   RuntimePlatform
+      # Volumes: 
+      #   - Volume
+      ContainerDefinitions: 
+        - 
+          Name: log_router
+          Image: !Sub '906394416424.dkr.ecr.${AWS::Region}.amazonaws.com/aws-for-fluent-bit:stable'
+          Cpu: 256
+          Memory: 512
+          MemoryReservation: 512
+          Essential: true
+          LogConfiguration: 
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref FirelensLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-create-group: true
+              awslogs-stream-prefix: firelens
+          FirelensConfiguration: 
+            Type: fluentbit
+            Options: 
+              'enable-ecs-log-metadata': true
+        - 
+          Name: webapp
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/foo-api:v1'
+          Cpu: 256
+          Memory: 512
+          MemoryReservation: 512
+          Essential: true
+          Privileged: false
+          PortMappings: 
+            - ContainerPort: 5000
+              HostPort: 5000
+              Protocol: tcp # tcp | udp
+          HealthCheck: 
+            Command: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/ || exit 1" ]
+            Interval: 15
+            Retries: 3
+            StartPeriod: 60
+            Timeout: 5
+          LogConfiguration: 
+            LogDriver: awsfirelens
+            Options:
+              Name: cloudwatch
+              region: !Ref AWS::Region
+              log_group_name: '/aws/ecs/containerinsights/$(ecs_cluster)/application'
+              auto_create_group: true
+              log_stream_name: "$(ecs_task_id)"
+          # FirelensConfiguration: 
+          #   FirelensConfiguration
+          # EntryPoint: 
+          #   - String
+          # Command: # CMD
+          #   - String
+          # Environment: 
+          #   - KeyValuePair
+          # EnvironmentFiles: 
+          #   - EnvironmentFile
+          # MountPoints: 
+          #   - MountPoint
+          # RepositoryCredentials: 
+          #   RepositoryCredentials
+          # Secrets: 
+          #   - Secret
+          # StartTimeout: Integer
+          # StopTimeout: Integer
+          # SystemControls: 
+          #   - SystemControl
+          # User: String
+          # VolumesFrom: 
+          #   - VolumeFrom
+          # WorkingDirectory: String
