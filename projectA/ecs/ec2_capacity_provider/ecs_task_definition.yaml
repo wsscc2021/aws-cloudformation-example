@@ -67,6 +67,15 @@ Resources:
           Value: value01
 
   #
+  # CloudwatchLogs - Log Group
+  #
+  CloudwatchLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: /ecs/application/foo-webapp
+      RetentionInDays: 365
+
+  #
   # ECS - Task Definition
   #
   TaskDefinition:
@@ -94,7 +103,7 @@ Resources:
       ContainerDefinitions: 
         - 
           Name: webapp
-          Image: 242593025403.dkr.ecr.us-east-1.amazonaws.com/python-helloworld:v1
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/foo-api:v1'
           Cpu: 1024
           Memory: 1536
           MemoryReservation: 1536
@@ -113,7 +122,7 @@ Resources:
           LogConfiguration: 
             LogDriver: awslogs
             Options:
-              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-group: !Ref CloudwatchLogGroup
               awslogs-region: !Ref AWS::Region
           # FirelensConfiguration: 
           #   FirelensConfiguration
