@@ -3,7 +3,7 @@ Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
 
-  PublicSubnets:
+  PublicSubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
 
 Resources:
@@ -19,7 +19,7 @@ Resources:
           Value: example-public-nacl
   
   #
-  # NACL - Entry
+  # NACL - Ingress Entry
   #
   PublicNetworkAccessListIngressEntry1:
     Type: AWS::EC2::NetworkAclEntry
@@ -83,10 +83,16 @@ Resources:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties: 
       NetworkAclId: !Ref PublicNetworkAccessList
-      SubnetId: !Select [ 0, !Ref PublicSubnets ]
+      SubnetId: !Select [ 0, !Ref PublicSubnetIds ]
   
   AssociationPublicSubnetB:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties: 
       NetworkAclId: !Ref PublicNetworkAccessList
-      SubnetId: !Select [ 1, !Ref PublicSubnets ]
+      SubnetId: !Select [ 1, !Ref PublicSubnetIds ]
+  
+  AssociationPublicSubnetC:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties: 
+      NetworkAclId: !Ref PublicNetworkAccessList
+      SubnetId: !Select [ 2, !Ref PublicSubnetIds ]
