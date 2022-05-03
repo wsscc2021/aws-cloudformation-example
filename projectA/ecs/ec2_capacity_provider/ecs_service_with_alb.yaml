@@ -40,7 +40,7 @@ Resources:
           Rollback: true
         MaximumPercent: 200
         MinimumHealthyPercent: 100
-      DesiredCount: 2
+      DesiredCount: 3
       EnableECSManagedTags: true
       EnableExecuteCommand: true
       LaunchType: EC2 # EC2 | EXTERNAL | FARGATE
