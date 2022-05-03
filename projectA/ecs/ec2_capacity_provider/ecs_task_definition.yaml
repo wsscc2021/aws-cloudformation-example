@@ -71,6 +71,7 @@ Resources:
   #
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
+    UpdateReplacePolicy: Retain
     Properties: 
       Family: foo-webapp-td
       ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
@@ -103,6 +104,19 @@ Resources:
             - ContainerPort: 5000
               HostPort: 5000
               Protocol: tcp # tcp | udp
+          HealthCheck: 
+            Command: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/ || exit 1" ]
+            Interval: 15
+            Retries: 3
+            StartPeriod: 60
+            Timeout: 5
+          LogConfiguration: 
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+          # FirelensConfiguration: 
+          #   FirelensConfiguration
           # EntryPoint: 
           #   - String
           # Command: # CMD
@@ -111,12 +125,6 @@ Resources:
           #   - KeyValuePair
           # EnvironmentFiles: 
           #   - EnvironmentFile
-          # LogConfiguration: 
-          #   LogConfiguration
-          # FirelensConfiguration: 
-          #   FirelensConfiguration
-          # HealthCheck: 
-          #   HealthCheck
           # MountPoints: 
           #   - MountPoint
           # RepositoryCredentials: 
