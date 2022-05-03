@@ -73,7 +73,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties: 
       LogGroupName: /ecs/application/foo-webapp
-      RetentionInDays: 365
+      RetentionInDays: 14
 
   #
   # ECS - Task Definition
