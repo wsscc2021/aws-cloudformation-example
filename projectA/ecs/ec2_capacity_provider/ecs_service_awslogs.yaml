@@ -107,8 +107,8 @@ Resources:
       NetworkMode: awsvpc # awsvpc | bridge | host | none
       RequiresCompatibilities: # EC2 | FARGATE | EXTERNAL
         - EC2
-      Cpu: 512
-      Memory: 1024
+      Cpu: 768
+      Memory: 1536
       # EphemeralStorage: 
       #   EphemeralStorage
       # PlacementConstraints: 
@@ -123,9 +123,9 @@ Resources:
         - 
           Name: webapp
           Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/foo-api:v2'
-          Cpu: 512
-          Memory: 1024
-          MemoryReservation: 1024
+          Cpu: 768
+          Memory: 1536
+          MemoryReservation: 1536
           Essential: true
           Privileged: false
           PortMappings: 
@@ -206,8 +206,13 @@ Resources:
           Subnets: !Ref SubnetIds
       # PlacementConstraints: 
       #   - PlacementConstraint
-      # PlacementStrategies: 
-      #   - PlacementStrategy
+      PlacementStrategies: 
+        - 
+          Field: "attribute:ecs.availability-zone"
+          Type: "spread"
+        - 
+          Field: "instanceId"
+          Type: "spread"
       # PlatformVersion: String
       # PropagateTags: String
       # Role: String
