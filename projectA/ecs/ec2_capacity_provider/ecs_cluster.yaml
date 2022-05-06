@@ -18,7 +18,7 @@ Resources:
           MinimumScalingStepSize: 1
           Status: ENABLED # DISABLED | ENABLED
           TargetCapacity: 100 # 1 ~ 100 (%)
-        ManagedTerminationProtection: DISABLED # DISABLED | ENABLED
+        ManagedTerminationProtection: ENABLED # DISABLED | ENABLED
       # Name: String
       # Tags: 
       #   - Tag
@@ -41,4 +41,4 @@ Resources:
       DefaultCapacityProviderStrategy: 
         - CapacityProvider: !Ref EC2CapacityProvider
           Weight: 100 # 1 ~ 1000
-          Base: 3 # minimum size of capacity provider
+          Base: 0

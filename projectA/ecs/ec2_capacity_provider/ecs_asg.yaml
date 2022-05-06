@@ -120,12 +120,12 @@ Resources:
       # CapacityRebalance: Boolean
       Cooldown: '120'
       DesiredCapacityType: units # units , vcpu , memory-mib
-      DesiredCapacity: '0'
-      MinSize: '0'
+      DesiredCapacity: '3'
+      MinSize: '3'
       MaxSize: '20'
       HealthCheckGracePeriod: 60
       HealthCheckType: EC2 # EC2 , ELB
-      NewInstancesProtectedFromScaleIn: false
+      NewInstancesProtectedFromScaleIn: true
       LaunchTemplate: 
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber # DefaultVersionNumber , LatestVersionNumber
