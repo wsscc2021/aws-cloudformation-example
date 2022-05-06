@@ -1,0 +1,21 @@
+
+Resources:
+  #
+  # ECS - Cluster
+  #
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties: 
+      ClusterName: example-ecs-fargate-cluster
+      CapacityProviders: # FARGATE | FARGATE_SPOT
+        - FARGATE
+      ClusterSettings: 
+        - Name: containerInsights
+          Value: enabled
+      Configuration: 
+        ExecuteCommandConfiguration:
+          Logging: DEFAULT # DEFAULT | NONE | OVERRIDE
+      DefaultCapacityProviderStrategy: 
+        - CapacityProvider: FARGATE
+          Weight: 100 # 1 ~ 1000
+          Base: 0
