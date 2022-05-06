@@ -4,10 +4,6 @@ Parameters:
     Description: ex, example-ecs-cluster
     Type: String
   
-  # TaskDefinitionArn:
-  #   Description: ex, arn:aws:ecs:us-east-1:242593025403:task-definition/foo-webapp-td:2
-  #   Type: String
-  
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
   
@@ -93,13 +89,13 @@ Resources:
   FirelensLogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
-      LogGroupName: /ecs/firelens-container
+      LogGroupName: !Sub '/aws/ecs/containerinsights/${ClusterName}/foo-webapp/firelens'
       RetentionInDays: 14    
 
   ApplicationLogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
-      LogGroupName: !Sub '/aws/ecs/containerinsights/${ClusterName}/application'
+      LogGroupName: !Sub '/aws/ecs/containerinsights/${ClusterName}/foo-webapp/application'
       RetentionInDays: 14
 
   #
