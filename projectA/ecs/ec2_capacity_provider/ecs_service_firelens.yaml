@@ -206,10 +206,10 @@ Resources:
       ServiceName: foo-webapp-service
       Cluster: !Ref ClusterName
       TaskDefinition: !Ref TaskDefinition
-      # CapacityProviderStrategy: 
-      #   - Base: Integer
-      #     CapacityProvider: String
-      #     Weight: Integer
+      CapacityProviderStrategy: 
+        - Base: 0
+          CapacityProvider: !Ref CapacityProvider
+          Weight: 100
       DeploymentController: 
         Type: ECS # ECS | CODE_DEPLOY | EXTERNAL
       DeploymentConfiguration:  # Only *ECS
@@ -221,7 +221,7 @@ Resources:
       DesiredCount: 3
       EnableECSManagedTags: true
       EnableExecuteCommand: true
-      LaunchType: EC2 # EC2 | EXTERNAL | FARGATE
+      # LaunchType: EC2 # EC2 | EXTERNAL | FARGATE
       LoadBalancers: 
         - ContainerName: webapp
           ContainerPort: 5000

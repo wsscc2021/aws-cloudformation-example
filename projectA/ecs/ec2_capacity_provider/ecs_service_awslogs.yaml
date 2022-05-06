@@ -4,10 +4,6 @@ Parameters:
     Description: ex, example-ecs-cluster
     Type: String
   
-  # TaskDefinitionArn:
-  #   Description: ex, arn:aws:ecs:us-east-1:242593025403:task-definition/foo-webapp-td:2
-  #   Type: String
-  
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
   
@@ -16,6 +12,10 @@ Parameters:
 
   TargetGroupArn:
     Description: ex, arn:aws:elasticloadbalancing:us-east-1:242593025403:targetgroup/foo-webapp-tg/b3cb1fa82626816d
+    Type: String
+
+  CapacityProvider:
+    Description: ex, example-ecs-cluster-EC2CapacityProvider-QWqu8ZG9Rvfl
     Type: String
 
 Resources:
@@ -177,10 +177,10 @@ Resources:
       ServiceName: foo-webapp-service
       Cluster: !Ref ClusterName
       TaskDefinition: !Ref TaskDefinition
-      # CapacityProviderStrategy: 
-      #   - Base: Integer
-      #     CapacityProvider: String
-      #     Weight: Integer
+      CapacityProviderStrategy: 
+        - Base: 0
+          CapacityProvider: !Ref CapacityProvider
+          Weight: 100
       DeploymentController: 
         Type: ECS # ECS | CODE_DEPLOY | EXTERNAL
       DeploymentConfiguration:  # Only *ECS
@@ -192,7 +192,7 @@ Resources:
       DesiredCount: 3
       EnableECSManagedTags: true
       EnableExecuteCommand: true
-      LaunchType: EC2 # EC2 | EXTERNAL | FARGATE
+      # LaunchType: EC2 # EC2 | EXTERNAL | FARGATE
       LoadBalancers: 
         - ContainerName: webapp
           ContainerPort: 5000
