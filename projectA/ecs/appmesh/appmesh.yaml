@@ -1,0 +1,160 @@
+
+Parameters:
+  MeshName:
+    Description: 'The name of mesh'
+    Type: String
+  NamespaceName:
+    Description: 'The namespace name of cloudmap'
+    Type: String
+
+Resources:
+  #
+  # AppMesh - Mesh
+  #
+  Mesh:
+    Type: AWS::AppMesh::Mesh
+    Properties: 
+      MeshName: !Ref MeshName
+      Spec: 
+        EgressFilter: 
+          Type: ALLOW_ALL # ALLOW_ALL | DROP_ALL
+
+  #
+  # AppMesh - Virtual Node
+  #
+  VirtualNode:
+    Type: AWS::AppMesh::VirtualNode
+    Properties: 
+      VirtualNodeName: foo-virtual-node
+      MeshName: !Ref MeshName
+      # MeshOwner: String
+      Spec: 
+        # BackendDefaults: 
+        #   BackendDefaults
+        # Backends: 
+        #   - Backend
+        Listeners: 
+          - ConnectionPool: 
+              HTTP: 
+                MaxConnections: 2048
+                MaxPendingRequests: 4096
+            HealthCheck: 
+              HealthyThreshold: 3
+              UnhealthyThreshold: 3
+              IntervalMillis: 5000 # 5s
+              Path: '/health'
+              Port: 5000
+              Protocol: http # grpc | http | http2 | tcp
+              TimeoutMillis: 2000
+            OutlierDetection: 
+              Interval: 
+                Unit: s # ms | s
+                Value: 5
+              MaxServerErrors: 3
+              BaseEjectionDuration: 
+                Unit: s # ms | s
+                Value: 30
+              MaxEjectionPercent: 10 # %
+            PortMapping: 
+              Port: 5000
+              Protocol: http # grpc | http | http2 | tcp
+            Timeout: 
+              HTTP: 
+                Idle: 
+                  Unit: s # ms | s
+                  Value: 5
+                PerRequest: 
+                  Unit: s # ms | s
+                  Value: 15
+            # TLS: 
+            #   ListenerTls
+        Logging: 
+          AccessLog: 
+            File: 
+              Path: '/dev/stdout'
+        ServiceDiscovery: 
+          AWSCloudMap: 
+            NamespaceName: !Ref NamespaceName
+            ServiceName: 'foo'
+            # Attributes: 
+            #   - Key: String
+            #     Value: String
+          # DNS: 
+          #   DnsServiceDiscovery
+
+  #
+  # AppMesh - Virtual Router
+  #
+  VirtualRouter:
+    Type: AWS::AppMesh::VirtualRouter
+    Properties: 
+      VirtualRouterName: foo-virtual-router
+      MeshName: !Ref MeshName
+      # MeshOwner: String
+      Spec: 
+        Listeners: 
+          - PortMapping: 
+              Port: 5000
+              Protocol: http # grpc | http | http2 | tcp
+
+  #
+  # AppMesh - Route
+  #
+  Route:
+    Type: AWS::AppMesh::Route
+    Properties: 
+      RouteName: foo-route
+      VirtualRouterName: !GetAtt VirtualRouter.VirtualRouterName
+      MeshName: !Ref MeshName
+      # MeshOwner: String
+      Spec: 
+        HttpRoute: 
+          Action: 
+            WeightedTargets: 
+              - VirtualNode: !GetAtt VirtualNode.VirtualNodeName
+                Weight: 100
+          Match: 
+            # Headers: 
+            #   - HttpRouteHeader
+            # Method: GET # CONNECT | DELETE | GET | HEAD | OPTIONS | PATCH | POST | PUT | TRACE
+            # Path: 
+            #   Exact: String
+            #   Regex: '/*'
+            Prefix: '/foo'
+            # QueryParameters: 
+            #   - QueryParameter
+            # Scheme: String
+          RetryPolicy: 
+            HttpRetryEvents: 
+              - server-error  # http status code 500, 501, 502, 503, 504 ..
+              - gateway-error # http status code 502, 503, 504
+              - client-error  # http status code 409
+              - stream-error  # refused stream
+            MaxRetries: 3
+            PerRetryTimeout: 
+              Unit: s # ms | s 
+              Value: 15
+          Timeout: 
+            Idle: 
+              Unit: s # ms | s 
+              Value: 5
+            PerRequest: 
+              Unit: s # ms | s 
+              Value: 15
+        Priority: 1
+
+  #
+  # AppMesh - Virtual Service
+  #
+  VirtualService:
+    Type: AWS::AppMesh::VirtualService
+    Properties: 
+      VirtualServiceName: foo-virtual-servie
+      MeshName: !Ref MeshName
+      # MeshOwner: String
+      Spec: 
+        Provider: 
+          # VirtualNode: 
+          #   VirtualNodeServiceProvider
+          VirtualRouter: 
+            VirtualRouterName: !GetAtt VirtualRouter.VirtualRouterName
