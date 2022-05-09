@@ -1,0 +1,60 @@
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+Resources:
+  #
+  # CloudMap - Namespace
+  #
+  Namespace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties: 
+      Description: 'This is the namespace for appmesh'
+      Name: apps.local
+      Properties: 
+        DnsProperties: 
+            SOA: 
+              TTL: 15.0
+      Vpc: !Ref VpcId
+  
+  #
+  # CloudMap - Service
+  #
+  Service:
+    Type: AWS::ServiceDiscovery::Service
+    Properties: 
+      Name: foo
+      Description: 'This is the service for appmesh'
+      NamespaceId: !GetAtt Namespace.Id
+      # Type: HTTP
+      DnsConfig: 
+        DnsRecords: 
+          - TTL: 15.0
+            Type: A
+        RoutingPolicy: WEIGHTED # WEIGHTED | MULTIVALUE
+      # HealthCheckConfig: # private namespace does not support this option. because, it perform by route53 healthcheck.
+      #   FailureThreshold: 3.0
+      #   ResourcePath: '/health'
+      #   Type: HTTP
+      # HealthCheckCustomConfig: 
+      #   HealthCheckCustomConfig
+  
+  ServiceBar:
+    Type: AWS::ServiceDiscovery::Service
+    Properties: 
+      Name: bar
+      Description: 'This is the service for appmesh'
+      NamespaceId: !GetAtt Namespace.Id
+      # Type: HTTP
+      DnsConfig: 
+        DnsRecords: 
+          - TTL: 15.0
+            Type: A
+        RoutingPolicy: WEIGHTED # WEIGHTED | MULTIVALUE
+      # HealthCheckConfig: # private namespace does not support this option. because, it perform by route53 healthcheck.
+      #   FailureThreshold: 3.0
+      #   ResourcePath: '/health'
+      #   Type: HTTP
+      # HealthCheckCustomConfig: 
+      #   HealthCheckCustomConfig
