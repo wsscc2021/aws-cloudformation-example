@@ -1,0 +1,283 @@
+
+Parameters:
+  ClusterName:
+    Description: ex, example-ecs-cluster
+    Type: String
+  
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+  
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+
+  # TargetGroupArn:
+  #   Description: ex, arn:aws:elasticloadbalancing:us-east-1:242593025403:targetgroup/foo-webapp-tg/b3cb1fa82626816d
+  #   Type: String
+
+Resources:
+  #
+  # IAM Role (for TaskExecutionRole)
+  #
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: ecs-task-execution-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+      # Policies: 
+      #   - PolicyName: dynamodb-query
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'dynamodb:Query'
+      #             - 'dynamodb:Scan'
+      #           Resource: '*'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # IAM Role (for TaskRole)
+  #
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: ecs-task-execution-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+      # Policies: 
+      #   - PolicyName: dynamodb-query
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'dynamodb:Query'
+      #             - 'dynamodb:Scan'
+      #           Resource: '*'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # CloudwatchLogs - Log Group
+  #
+  EnvoyLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Sub '/ecs/${ClusterName}/service/foo-webapp/envoy'
+      RetentionInDays: 14
+  
+  ApplicationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Sub '/ecs/${ClusterName}/service/foo-webapp/application'
+      RetentionInDays: 14
+
+  #
+  # ECS - Task Definition
+  #
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    UpdateReplacePolicy: Retain
+    Properties: 
+      Family: foo-webapp-fargate
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      NetworkMode: awsvpc # awsvpc | bridge | host | none
+      RequiresCompatibilities: # EC2 | FARGATE | EXTERNAL
+        - FARGATE
+      Cpu: 1024
+      Memory: 2048
+      # EphemeralStorage: 
+      #   EphemeralStorage
+      # PlacementConstraints: 
+      #   - TaskDefinitionPlacementConstraint
+      ProxyConfiguration: # app mesh
+        Type: APPMESH
+        ContainerName: envoy
+        ProxyConfigurationProperties: 
+          - Name: ProxyIngressPort
+            Value: '15000'
+          - Name: ProxyEgressPort
+            Value: '15001'
+          - Name: AppPorts
+            Value: '5000'
+          - Name: EgressIgnoredIPs
+            Value: '169.254.170.2,169.254.169.254'
+          - Name: IgnoredUID
+            Value: '1337'
+          - Name: EgressIgnoredPorts
+            Value: '22'
+      # RuntimePlatform: 
+      #   RuntimePlatform
+      # Volumes: 
+      #   - Volume
+      ContainerDefinitions: 
+        -
+          Name: envoy
+          Image: !Sub '840364872350.dkr.ecr.${AWS::Region}.amazonaws.com/aws-appmesh-envoy:v1.21.1.2-prod'
+          Cpu: 256
+          Memory: 512
+          MemoryReservation: 512
+          Essential: true
+          HealthCheck: 
+            Command: [ "CMD-SHELL", "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE" ]
+            Interval: 5
+            Retries: 3
+            StartPeriod: 10
+            Timeout: 2
+          LogConfiguration: 
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref EnvoyLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: envoy
+          Environment: 
+            - Name: APPMESH_VIRTUAL_NODE_NAME
+              Value: 'mesh/example-mesh/virtualNode/foo-virtual-node'
+            - Name: ENABLE_ENVOY_XRAY_TRACING
+              Value: '1'
+          User: '1337'
+        - 
+          Name: xray-daemon
+          Image: public.ecr.aws/xray/aws-xray-daemon:3.3.3
+          Essential: true
+          Cpu: 256
+          Memory: 512
+          MemoryReservation: 512
+          PortMappings:
+            - ContainerPort: 2000
+              HostPort: 2000
+              Protocol: udp # tcp | udp
+          User: '1337'
+        - 
+          Name: webapp
+          Image: '242593025403.dkr.ecr.us-east-1.amazonaws.com/foo-webapp:20220509151755'
+          Cpu: 512
+          Memory: 1024
+          MemoryReservation: 1024
+          Essential: true
+          Privileged: false
+          PortMappings: 
+            - ContainerPort: 5000
+              HostPort: 5000
+              Protocol: tcp # tcp | udp
+          HealthCheck: 
+            Command: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1" ]
+            Interval: 15
+            Retries: 3
+            StartPeriod: 60
+            Timeout: 5
+          LogConfiguration: 
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ApplicationLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: fargate
+        
+
+  #
+  # ECS -Service
+  #
+  Service:
+    Type: AWS::ECS::Service
+    Properties: 
+      ServiceName: foo-webapp-fargate-service
+      Cluster: !Ref ClusterName
+      TaskDefinition: !Ref TaskDefinition
+      CapacityProviderStrategy: 
+        - Base: 0
+          CapacityProvider: FARGATE
+          Weight: 100
+      DeploymentController: 
+        Type: ECS # ECS | CODE_DEPLOY | EXTERNAL
+      DeploymentConfiguration:  # Only *ECS
+        DeploymentCircuitBreaker: 
+          Enable: true
+          Rollback: true
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: 3
+      EnableECSManagedTags: true
+      EnableExecuteCommand: true
+      # LaunchType: FARGATE # EC2 | EXTERNAL | FARGATE
+      # LoadBalancers: 
+      #   - ContainerName: webapp
+      #     ContainerPort: 5000
+      #     # LoadBalancerName: !Ref LoadBalancerName
+      #     TargetGroupArn: !Ref TargetGroupArn
+      # HealthCheckGracePeriodSeconds: 60
+      NetworkConfiguration: 
+        AwsvpcConfiguration: 
+          AssignPublicIp: DISABLED # DISABLED | ENABLED
+          SecurityGroups: !Ref SecurityGroupIds
+          Subnets: !Ref SubnetIds
+      # PlacementConstraints: 
+      #   - PlacementConstraint
+      # PlacementStrategies: 
+      #   - PlacementStrategy
+      # PlatformVersion: String
+      # PropagateTags: String
+      # Role: String
+      # SchedulingStrategy: String
+      ServiceRegistries: # CloudMap # aws servicediscovery list-services
+        - RegistryArn: !Sub 'arn:aws:servicediscovery:${AWS::Region}:${AWS::AccountId}:service/srv-em2svmlhn2gozwyf'
+          # Port: 5000
+          # ContainerName: String
+          # ContainerPort: Integer
+
+  #
+  # Application Auto Scaling - Scalable Target
+  #
+  ScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties: 
+      MaxCapacity: 60
+      MinCapacity: 3
+      ResourceId: !Join ['/', ['service', !Ref ClusterName, !GetAtt Service.Name]]
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService'
+      ScalableDimension: ecs:service:DesiredCount
+      # ScheduledActions: 
+      #   - ScheduledAction
+      ServiceNamespace: ecs
+      # SuspendedState: 
+      #   SuspendedState
+  
+  #
+  # Application Auto Scaling - ScalingPolicy
+  #
+  ScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: ECS-TargetTracking-ScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        TargetValue: 60.0
