@@ -149,4 +149,4 @@ Resources:
         ReuseOnScaleIn: true
       MaxGroupPreparedCapacity: 3
       MinSize: 3
-      PoolState: Running # Hibernated | Running | Stopped
+      PoolState: Stopped # Hibernated | Running | Stopped
