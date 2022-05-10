@@ -10,6 +10,10 @@ Parameters:
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
 
+  CapacityProvider:
+    Description: ex, example-ecs-cluster-EC2CapacityProvider-QWqu8ZG9Rvfl
+    Type: String
+  
   # TargetGroupArn:
   #   Description: ex, arn:aws:elasticloadbalancing:us-east-1:242593025403:targetgroup/foo-webapp-tg/b3cb1fa82626816d
   #   Type: String
@@ -91,7 +95,7 @@ Resources:
     Properties: 
       LogGroupName: !Sub '/ecs/${ClusterName}/service/foo-webapp/envoy'
       RetentionInDays: 14
-  
+
   ApplicationLogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
@@ -105,18 +109,14 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     UpdateReplacePolicy: Retain
     Properties: 
-      Family: foo-webapp-fargate
+      Family: foo-webapp
       ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
       TaskRoleArn: !GetAtt TaskRole.Arn
       NetworkMode: awsvpc # awsvpc | bridge | host | none
       RequiresCompatibilities: # EC2 | FARGATE | EXTERNAL
-        - FARGATE
-      Cpu: 1024
-      Memory: 2048
-      # EphemeralStorage: 
-      #   EphemeralStorage
-      # PlacementConstraints: 
-      #   - TaskDefinitionPlacementConstraint
+        - EC2
+      Cpu: 768
+      Memory: 1536
       ProxyConfiguration: # app mesh
         Type: APPMESH
         ContainerName: envoy
@@ -141,9 +141,9 @@ Resources:
         -
           Name: envoy
           Image: !Sub '840364872350.dkr.ecr.${AWS::Region}.amazonaws.com/aws-appmesh-envoy:v1.21.1.2-prod'
-          Cpu: 256
-          Memory: 512
-          MemoryReservation: 512
+          Cpu: 128
+          Memory: 256
+          MemoryReservation: 256
           Essential: true
           HealthCheck: 
             Command: [ "CMD-SHELL", "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE" ]
@@ -167,9 +167,9 @@ Resources:
           Name: xray-daemon
           Image: public.ecr.aws/xray/aws-xray-daemon:3.3.3
           Essential: true
-          Cpu: 256
-          Memory: 512
-          MemoryReservation: 512
+          Cpu: 128
+          Memory: 256
+          MemoryReservation: 256
           PortMappings:
             - ContainerPort: 2000
               HostPort: 2000
@@ -177,7 +177,7 @@ Resources:
           User: '1337'
         - 
           Name: webapp
-          Image: '242593025403.dkr.ecr.us-east-1.amazonaws.com/foo-webapp:20220509151755'
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/foo-webapp:20220509151755'
           Cpu: 512
           Memory: 1024
           MemoryReservation: 1024
@@ -198,8 +198,31 @@ Resources:
             Options:
               awslogs-group: !Ref ApplicationLogGroup
               awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: fargate
-        
+              awslogs-stream-prefix: application
+          # FirelensConfiguration: 
+          #   FirelensConfiguration
+          # EntryPoint: 
+          #   - String
+          # Command: # CMD
+          #   - String
+          # Environment: 
+          #   - KeyValuePair
+          # EnvironmentFiles: 
+          #   - EnvironmentFile
+          # MountPoints: 
+          #   - MountPoint
+          # RepositoryCredentials: 
+          #   RepositoryCredentials
+          # Secrets: 
+          #   - Secret
+          # StartTimeout: Integer
+          # StopTimeout: Integer
+          # SystemControls: 
+          #   - SystemControl
+          # User: String
+          # VolumesFrom: 
+          #   - VolumeFrom
+          # WorkingDirectory: String
 
   #
   # ECS -Service
@@ -207,12 +230,12 @@ Resources:
   Service:
     Type: AWS::ECS::Service
     Properties: 
-      ServiceName: foo-webapp-fargate-service
+      ServiceName: foo-webapp-service
       Cluster: !Ref ClusterName
       TaskDefinition: !Ref TaskDefinition
       CapacityProviderStrategy: 
         - Base: 0
-          CapacityProvider: FARGATE
+          CapacityProvider: !Ref CapacityProvider
           Weight: 100
       DeploymentController: 
         Type: ECS # ECS | CODE_DEPLOY | EXTERNAL
@@ -225,31 +248,27 @@ Resources:
       DesiredCount: 3
       EnableECSManagedTags: true
       EnableExecuteCommand: true
-      # LaunchType: FARGATE # EC2 | EXTERNAL | FARGATE
-      # LoadBalancers: 
-      #   - ContainerName: webapp
-      #     ContainerPort: 5000
-      #     # LoadBalancerName: !Ref LoadBalancerName
-      #     TargetGroupArn: !Ref TargetGroupArn
+      # LaunchType: EC2 # EC2 | EXTERNAL | FARGATE
+      LoadBalancers: 
+        - ContainerName: webapp
+          ContainerPort: 5000
+          # LoadBalancerName: !Ref LoadBalancerName
+          TargetGroupArn: !Ref TargetGroupArn
       # HealthCheckGracePeriodSeconds: 60
       NetworkConfiguration: 
         AwsvpcConfiguration: 
           AssignPublicIp: DISABLED # DISABLED | ENABLED
           SecurityGroups: !Ref SecurityGroupIds
           Subnets: !Ref SubnetIds
-      # PlacementConstraints: 
-      #   - PlacementConstraint
-      # PlacementStrategies: 
-      #   - PlacementStrategy
-      # PlatformVersion: String
-      # PropagateTags: String
-      # Role: String
-      # SchedulingStrategy: String
+      PlacementStrategies: 
+        - 
+          Field: "attribute:ecs.availability-zone"
+          Type: "spread"
+        - 
+          Field: "instanceId"
+          Type: "spread"
       ServiceRegistries: # CloudMap # aws servicediscovery list-services
         - RegistryArn: !Sub 'arn:aws:servicediscovery:${AWS::Region}:${AWS::AccountId}:service/srv-em2svmlhn2gozwyf'
-          # Port: 5000
-          # ContainerName: String
-          # ContainerPort: Integer
 
   #
   # Application Auto Scaling - Scalable Target
