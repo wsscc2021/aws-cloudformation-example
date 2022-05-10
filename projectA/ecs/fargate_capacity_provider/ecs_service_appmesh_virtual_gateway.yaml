@@ -122,6 +122,8 @@ Resources:
             StartPeriod: 10
             Timeout: 2
           PortMappings:
+            - ContainerPort: 9901 # for external healthcheck such as elb
+              Protocol: 'tcp'
             - ContainerPort: 9080
               Protocol: 'tcp'
           LogConfiguration: 

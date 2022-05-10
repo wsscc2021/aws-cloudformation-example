@@ -3,7 +3,7 @@ Parameters:
   ClusterName:
     Description: ex, example-ecs-cluster
     Type: String
-  
+
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
   
@@ -249,11 +249,11 @@ Resources:
       EnableECSManagedTags: true
       EnableExecuteCommand: true
       # LaunchType: EC2 # EC2 | EXTERNAL | FARGATE
-      LoadBalancers: 
-        - ContainerName: webapp
-          ContainerPort: 5000
-          # LoadBalancerName: !Ref LoadBalancerName
-          TargetGroupArn: !Ref TargetGroupArn
+      # LoadBalancers: 
+      #   - ContainerName: webapp
+      #     ContainerPort: 5000
+      #     # LoadBalancerName: !Ref LoadBalancerName
+      #     TargetGroupArn: !Ref TargetGroupArn
       # HealthCheckGracePeriodSeconds: 60
       NetworkConfiguration: 
         AwsvpcConfiguration: 
