@@ -33,3 +33,11 @@ AppMesh를 사용하면 Envoy Proxy 를 거쳐 통신하지만, Envoy Proxy 포�
 
 단지 **어플리케이션의 포트만 열어주면 됩니다.**
 
+
+## Virtual Gateway Path 주의!!
+
+Virtual Gateway의 Route 설정에서 prefix match를 설정하면 virtual gateway를 거쳐가면서 prefix 경로가 벗겨집니다.
+
+예를 들어, `/chapter` prefix match를 사용하고 /chapter/1 요청이 들어올 경우 virtual gateway 뒷단의 어플리케이션에서는 /1 로 요청을 받습니다.
+
+- REF : https://docs.aws.amazon.com/ko_kr/app-mesh/latest/userguide/gateway-routes.html
