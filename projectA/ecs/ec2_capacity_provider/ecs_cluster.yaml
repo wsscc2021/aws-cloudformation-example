@@ -13,9 +13,9 @@ Resources:
       AutoScalingGroupProvider: 
         AutoScalingGroupArn: !Ref AutoScalingGroupArn
         ManagedScaling: 
-          InstanceWarmupPeriod: 120
+          InstanceWarmupPeriod: 30
           MaximumScalingStepSize: 20
-          MinimumScalingStepSize: 1
+          MinimumScalingStepSize: 3
           Status: ENABLED # DISABLED | ENABLED
           TargetCapacity: 100 # 1 ~ 100 (%)
         ManagedTerminationProtection: ENABLED # DISABLED | ENABLED
