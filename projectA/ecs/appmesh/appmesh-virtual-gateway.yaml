@@ -1,0 +1,78 @@
+
+Parameters:
+  MeshName:
+    Description: 'The name of mesh'
+    Type: String
+
+Resources:
+  #
+  # AppMesh - Virtual Gateway
+  #
+  VirtualGateway:
+    Type: AWS::AppMesh::VirtualGateway
+    Properties: 
+      VirtualGatewayName: virtual-gateway
+      MeshName: !Ref MeshName
+      # MeshOwner: String
+      Spec: 
+        # BackendDefaults: 
+        #   ClientPolicy: 
+        #     TLS: 
+        #       Enforce: false
+        #       # Certificate: 
+        #       #   VirtualGatewayClientTlsCertificate
+        #       # Ports: 
+        #       #   - Integer
+        #       # Validation: 
+        #       #   VirtualGatewayTlsValidationContext
+        Listeners: 
+          - ConnectionPool: 
+              HTTP: 
+                  MaxConnections: 10240
+                  MaxPendingRequests: 20480
+            # HealthCheck: 
+            #   HealthyThreshold: 3
+            #   IntervalMillis: 5000 # ms
+            #   Path: '/'
+            #   Port: 5000
+            #   Protocol: http
+            #   TimeoutMillis: 5000 # ms
+            #   UnhealthyThreshold: 2
+            PortMapping: 
+              Port: 5000
+              Protocol: http
+            # TLS: 
+            #   VirtualGatewayListenerTls
+        Logging: 
+          AccessLog: 
+            File: 
+              Path: '/dev/stdout'
+  
+  #
+  # AppMesh - Gateway Route
+  #
+  GatewayRouteFoo:
+    Type: AWS::AppMesh::GatewayRoute
+    Properties: 
+      GatewayRouteName: gateway-route-foo
+      VirtualGatewayName: !GetAtt VirtualGateway.VirtualGatewayName
+      MeshName: !Ref MeshName
+      # MeshOwner: String
+      Spec: 
+        HttpRoute: 
+          Action: 
+            Target: 
+              VirtualService: 
+                VirtualServiceName: foo-virtual-service
+          Match: 
+            # Headers: 
+            #   - HttpGatewayRouteHeader
+            # Hostname: 
+            #   GatewayRouteHostnameMatch
+            # Method: String
+            # Path: 
+            #   HttpPathMatch
+            Prefix: '/foo'
+            # QueryParameters: 
+            #   - QueryParameter
+        Priority: 1
