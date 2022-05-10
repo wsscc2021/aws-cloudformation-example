@@ -42,7 +42,7 @@ Resources:
                   - 'dynamodb:Scan'
                 Resource: '*'
       ManagedPolicyArns: 
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Tags: 
         - Key: key01
           Value: value01
