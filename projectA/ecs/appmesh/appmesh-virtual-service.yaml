@@ -109,7 +109,7 @@ Resources:
             # Path: 
             #   Exact: String
             #   Regex: '/*'
-            Prefix: '/foo'
+            Prefix: '/'
             # QueryParameters: 
             #   - QueryParameter
             # Scheme: String
@@ -138,7 +138,7 @@ Resources:
   VirtualService:
     Type: AWS::AppMesh::VirtualService
     Properties: 
-      VirtualServiceName: foo-virtual-servie
+      VirtualServiceName: foo-virtual-service
       MeshName: !Ref MeshName
       # MeshOwner: String
       Spec: 
