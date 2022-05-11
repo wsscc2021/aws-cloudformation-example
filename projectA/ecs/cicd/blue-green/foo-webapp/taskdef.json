@@ -1,0 +1,86 @@
+{
+  "ipcMode": null,
+  "executionRoleArn": "arn:aws:iam::242593025403:role/ecs-foo-webapp-service-TaskExecutionRole-1HR4ZWI71ZPLT",
+  "containerDefinitions": [
+    {
+      "dnsSearchDomains": [],
+      "environmentFiles": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "secretOptions": [],
+        "options": {
+          "awslogs-group": "/ecs/application/foo-webapp-fargate",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "fargate"
+        }
+      },
+      "entryPoint": [],
+      "portMappings": [
+        {
+          "hostPort": 5000,
+          "protocol": "tcp",
+          "containerPort": 5000
+        }
+      ],
+      "command": [],
+      "linuxParameters": null,
+      "cpu": 512,
+      "environment": [],
+      "resourceRequirements": null,
+      "ulimits": [],
+      "dnsServers": [],
+      "mountPoints": [],
+      "workingDirectory": null,
+      "secrets": [],
+      "dockerSecurityOptions": [],
+      "memory": 1024,
+      "memoryReservation": 1024,
+      "volumesFrom": [],
+      "stopTimeout": null,
+      "image": "<IMAGE1_NAME>",
+      "startTimeout": null,
+      "firelensConfiguration": null,
+      "dependsOn": null,
+      "disableNetworking": null,
+      "interactive": null,
+      "healthCheck": {
+        "retries": 3,
+        "command": [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1"
+        ],
+        "timeout": 5,
+        "interval": 15,
+        "startPeriod": 60
+      },
+      "essential": true,
+      "links": [],
+      "hostname": null,
+      "extraHosts": [],
+      "pseudoTerminal": null,
+      "user": null,
+      "readonlyRootFilesystem": null,
+      "dockerLabels": {},
+      "systemControls": [],
+      "privileged": false,
+      "name": "webapp"
+    }
+  ],
+  "placementConstraints": [],
+  "memory": "1024",
+  "taskRoleArn": "arn:aws:iam::242593025403:role/ecs-foo-webapp-service-TaskRole-1MM4ZDXR60IGC",
+  "compatibilities": [
+    "EC2",
+    "FARGATE"
+  ],
+  "family": "foo-webapp-fargate",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "networkMode": "awsvpc",
+  "runtimePlatform": null,
+  "cpu": "512",
+  "inferenceAccelerators": null,
+  "proxyConfiguration": null,
+  "volumes": []
+}

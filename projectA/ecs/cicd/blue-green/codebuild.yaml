@@ -1,0 +1,167 @@
+
+Parameters:
+  ProjectName:
+    Description: 'The project name of CodeBuild'
+    Type: String
+
+  CodeCommitRepositoryName:
+    Description: 'The repository name of CodeCommit'
+    Type: String
+
+  CodeCommitBranchName:
+    Description: 'The branch name of CodeCommit'
+    Type: String
+
+  ArtifactBucketName:
+    Description: 'The bucket name of artifacts'
+    Type: String
+
+  ECRRepositoryName:
+    Description: 'The repository name of ECR'
+    Type: String
+
+Resources:
+  #
+  # IAM - Role
+  #
+  Role:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: example-ec2-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+      Policies: 
+        -
+          PolicyName: cloudwatchLogs
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: !GetAtt BuildProjectLogGroup.Arn
+        -
+          PolicyName: s3
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                  - 's3:GetObjectVersion'
+                  - 's3:GetBucketAcl'
+                  - 's3:GetBucketLocation'
+                Resource: 
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
+        - 
+          PolicyName: codecommit
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codecommit:GitPull'
+                Resource: !Sub 'arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CodeCommitRepositoryName}'
+        - 
+          PolicyName: codebuild
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codebuild:CreateReportGroup'
+                  - 'codebuild:CreateReport'
+                  - 'codebuild:UpdateReport'
+                  - 'codebuild:BatchPutTestCases'
+                  - 'codebuild:BatchPutCodeCoverages'
+                Resource: !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${ProjectName}-*'
+        - 
+          PolicyName: ecr
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ecr:BatchCheckLayerAvailability'
+                  - 'ecr:CompleteLayerUpload'
+                  - 'ecr:GetAuthorizationToken'
+                  - 'ecr:InitiateLayerUpload'
+                  - 'ecr:PutImage'
+                  - 'ecr:UploadLayerPart'
+                Resource: '*'
+      # ManagedPolicyArns: 
+      #   - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      #   - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # Cloudwatch - Log Group
+  #
+  BuildProjectLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Sub '/aws/codebuild/${ProjectName}'
+      RetentionInDays: 1
+
+  #
+  # Codebuild - Project
+  #
+  Project:
+    Type: AWS::CodeBuild::Project
+    Properties: 
+      Name: !Ref ProjectName
+      ServiceRole: !GetAtt Role.Arn
+      BadgeEnabled: true
+      Artifacts: 
+        Type: NO_ARTIFACTS
+      # ConcurrentBuildLimit: Integer
+      # EncryptionKey: 'alias/aws/s3'
+      Environment: 
+        ComputeType: BUILD_GENERAL1_SMALL # BUILD_GENERAL1_MEDIUM | BUILD_GENERAL1_LARGE
+        Image: 'aws/codebuild/amazonlinux2-x86_64-standard:3.0'
+        Type: LINUX_CONTAINER # ARM_CONTAINER | LINUX_CONTAINER | LINUX_GPU_CONTAINER | WINDOWS_CONTAINER | WINDOWS_SERVER_2019_CONTAINER
+        PrivilegedMode: true
+        EnvironmentVariables: 
+          - 
+            Name: AWS_DEFAULT_REGION
+            Type: PLAINTEXT
+            Value: !Ref AWS::Region
+          - 
+            Name: AWS_ACCOUNT_ID
+            Type: PLAINTEXT
+            Value: !Ref AWS::AccountId
+          - 
+            Name: IMAGE_REPO_NAME
+            Type: PLAINTEXT
+            Value: !Ref ECRRepositoryName
+      LogsConfig: 
+        CloudWatchLogs: 
+          GroupName: !Ref BuildProjectLogGroup
+          Status: ENABLED
+          # StreamName: String
+      Source: 
+        Type: CODECOMMIT
+        Location: !Sub 'https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${CodeCommitRepositoryName}'
+      SourceVersion: !Sub 'refs/heads/${CodeCommitBranchName}'
+      # Tags: 
+      #   - Key: key01
+      #     Value: value01
+      Visibility: PRIVATE
+      # VpcConfig: 
+      #   SecurityGroupIds: !Ref SecurityGroupIds
+      #   Subnets: !Ref SubnetIds
+      #   VpcId: !Ref VpcId
+

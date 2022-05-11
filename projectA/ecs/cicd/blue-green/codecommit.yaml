@@ -1,0 +1,17 @@
+
+Resources:
+  #
+  # CodeCommit - Repository
+  #
+  Repository:
+    Type: AWS::CodeCommit::Repository
+    Properties: 
+      # Code: 
+      #   Code
+      RepositoryDescription: 'This is repository of codecommit for source code'
+      RepositoryName: foo-webapp
+      # Triggers: 
+      #   - RepositoryTrigger
+      Tags: 
+        - Key: key01
+          Value: value01

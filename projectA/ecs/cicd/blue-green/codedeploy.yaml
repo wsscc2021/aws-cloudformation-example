@@ -1,0 +1,133 @@
+
+Parameters:
+  ECSClusterName:
+    Description: 'The Cluster name of ecs'
+    Type: String
+
+  ECSServiceName:
+    Description: 'The Service name of ecs'
+    Type: String
+
+  ListenerArn:
+    Description: 'The Listener ARN of elb'
+    Type: String
+
+  # TestListenerArn:
+  #   Description: 'The Test Listener ARN of elb'
+  #   Type: String
+
+  TargetGroup1Name:
+    Description: 'The name of target group 1'
+    Type: String
+
+  TargetGroup2Name:
+    Description: 'The name of target group 2'
+    Type: String
+
+Resources:
+  #
+  # CodeDeploy - Application
+  #
+  Application:
+    Type: AWS::CodeDeploy::Application
+    Properties: 
+      ApplicationName: 'foo-webapp'
+      ComputePlatform: ECS # ECS | Lambda | Server
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # IAM Role
+  #
+  Role:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: example-ec2-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+      # Policies: 
+      #   -
+      #     PolicyName: ecs
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'logs:CreateLogStream'
+      #             - 'logs:PutLogEvents'
+      #           Resource: !GetAtt BuildProjectLogGroup.Arn
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS
+      Tags: 
+        - Key: key01
+          Value: value01
+  
+  #
+  # CodeDeploy - Deployment Config
+  #
+  DeploymentConfig:
+    Type: AWS::CodeDeploy::DeploymentConfig
+    Properties: 
+      ComputePlatform: ECS # ECS | Lambda | Server
+      DeploymentConfigName: 'ecs-blue-green'
+      TrafficRoutingConfig: 
+        # TimeBasedCanary: 
+        #   CanaryInterval: 5 # minute 0 , 5 , 10 ...
+        #   CanaryPercentage: 10
+        # TimeBasedLinear: 
+        #   LinearInterval: 5 # minute 0 , 5 , 10 ...
+        #   LinearPercentage: 25
+        Type: AllAtOnce # AllAtOnce | TimeBasedCanary | TimeBasedLinear
+
+  #
+  # CodeDeploy - Deployment Group
+  #
+  DeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties: 
+      # DeploymentGroupName: 'foo-webapp'
+      ApplicationName: !Ref Application
+      AutoRollbackConfiguration: 
+        Enabled: true
+        Events: 
+          - DEPLOYMENT_FAILURE
+      BlueGreenDeploymentConfiguration: 
+        DeploymentReadyOption: 
+          ActionOnTimeout: CONTINUE_DEPLOYMENT # CONTINUE_DEPLOYMENT | STOP_DEPLOYMENT
+          WaitTimeInMinutes: 0
+        TerminateBlueInstancesOnDeploymentSuccess: 
+          Action: TERMINATE # KEEP_ALIVE | TERMINATE
+          TerminationWaitTimeInMinutes: 0 # 0 , 5 , 10 , 15 ...
+      DeploymentConfigName: !Ref DeploymentConfig
+      DeploymentStyle: 
+        DeploymentOption: WITH_TRAFFIC_CONTROL
+        DeploymentType: BLUE_GREEN
+      ECSServices: 
+        - ClusterName: !Ref ECSClusterName
+          ServiceName: !Ref ECSServiceName
+      LoadBalancerInfo: 
+        TargetGroupPairInfoList: 
+          - ProdTrafficRoute: 
+              ListenerArns: 
+                - !Ref ListenerArn
+            TargetGroups: 
+              - Name: !Ref TargetGroup1Name
+              - Name: !Ref TargetGroup2Name
+            # TestTrafficRoute: 
+            #   ListenerArns: 
+            #     - !Ref TestListenerArn
+      ServiceRoleArn: !GetAtt Role.Arn
+      # Tags: 
+      #   - Tag
+      # TriggerConfigurations: 
+      #   - TriggerConfig
+
