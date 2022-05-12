@@ -29,8 +29,8 @@ Resources:
       # SourcePrefixListId: pl-63a5400a # you can check prefixlistID in console.
       CidrIp: 0.0.0.0/0
       IpProtocol: -1 # -1(all) , tcp , udp , icmp , icmpv6
-      # ToPort: 443
       # FromPort: 443
+      # ToPort: 443
 
   #
   # Egress Rules
@@ -42,5 +42,5 @@ Resources:
       # DestinationSecurityGroupId: !Ref ExampleSecurityGroup
       CidrIp: 0.0.0.0/0
       IpProtocol: -1 # -1(all) , tcp , udp , icmp , icmpv6
-      # ToPort: 443
       # FromPort: 443
+      # ToPort: 443
