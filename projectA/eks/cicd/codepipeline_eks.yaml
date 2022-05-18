@@ -1,0 +1,286 @@
+
+Parameters:
+  ArtifactBucketName:
+    Description: 'The bucket name for artifacts'
+    Type: String
+
+  CodePipelineName:
+    Description: 'The pipeline name of codepipeline'
+    Type: String
+
+  CodeCommitRepositoryName:
+    Description: 'The repository name of codecommit'
+    Type: String
+  
+  CodeCommitBranchName:
+    Description: 'The branch name of codecommit'
+    Type: String
+
+  CodeBuildProjectNameECR:
+    Description: 'The project name of codebuild for ecr upload'
+    Type: String
+  
+  CodeBuildProjectNameKUBELET:
+    Description: 'The project name of codebuild for deploy to k8s'
+    Type: String
+
+Resources:
+  #
+  # IAM Role
+  #
+  Role:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: example-ec2-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+      Policies: 
+        -
+          PolicyName: passrole
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'iam:PassRole'
+                Condition:
+                  StringEqualsIfExists:
+                    iam:PassedToService:
+                      - 'cloudformation.amazonaws.com'
+                      - 'elasticbeanstalk.amazonaws.com'
+                      - 'ec2.amazonaws.com'
+                      - 'ecs-tasks.amazonaws.com'
+                Resource: '*'
+        -
+          PolicyName: codecommit
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codecommit:CancelUploadArchive'
+                  - 'codecommit:GetBranch'
+                  - 'codecommit:GetCommit'
+                  - 'codecommit:GetRepository'
+                  - 'codecommit:GetUploadArchiveStatus'
+                  - 'codecommit:UploadArchive'
+                Resource: '*'
+        -
+          PolicyName: codedeploy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codedeploy:CreateDeployment'
+                  - 'codedeploy:GetApplication'
+                  - 'codedeploy:GetApplicationRevision'
+                  - 'codedeploy:GetDeployment'
+                  - 'codedeploy:GetDeploymentConfig'
+                  - 'codedeploy:RegisterApplicationRevision'
+                Resource: '*'
+        -
+          PolicyName: codebuild
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codebuild:BatchGetBuilds'
+                  - 'codebuild:StartBuild'
+                Resource: '*'
+        - 
+          PolicyName: ecr
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ecr:DescribeImages'
+                Resource: '*'
+        -
+          PolicyName: infrastructure
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'elasticbeanstalk:*'
+                  - 'ec2:*'
+                  - 'elasticloadbalancing:*'
+                  - 'autoscaling:*'
+                  - 'cloudwatch:*'
+                  - 's3:*'
+                  - 'sns:*'
+                  - 'cloudformation:*'
+                  - 'rds:*'
+                  - 'sqs:*'
+                  - 'ecs:*'
+                Resource: '*'
+      # ManagedPolicyArns: 
+      #   - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      #   - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags: 
+        - Key: key01
+          Value: value01
+  
+  #
+  # Codepipeline - Pipeline
+  #
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties: 
+      ArtifactStore: 
+        # EncryptionKey: 
+        #   Id: 'alias/aws/s3'
+        #   Type: KMS
+        Location: !Ref ArtifactBucketName
+        Type: S3
+      Name: !Ref CodePipelineName
+      RoleArn: !GetAtt Role.Arn
+      Stages: 
+        - 
+          Name: Source
+          Actions: 
+            - 
+              Name: SourceAction
+              ActionTypeId: 
+                Category: Source
+                Owner: AWS
+                Provider: CodeCommit
+                Version: 1
+              Configuration:
+                BranchName: !Ref CodeCommitBranchName
+                RepositoryName: !Ref CodeCommitRepositoryName
+                PollForSourceChanges: false
+              # InputArtifacts: 
+              #   - InputArtifact
+              # Namespace: String
+              OutputArtifacts: 
+                - Name: SourceOutput
+              RunOrder: 1
+        - 
+          Name: Build
+          Actions: 
+            - 
+              Name: BuildAction
+              ActionTypeId: 
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CodeBuildProjectNameECR
+              InputArtifacts: 
+                - Name: SourceOutput
+              Namespace: BuildVariable
+              OutputArtifacts: 
+                - Name: BuildOutput
+              RunOrder: 1
+        - 
+          Name: Deploy
+          Actions: 
+            - 
+              Name: DeployAction
+              ActionTypeId: 
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CodeBuildProjectNameKUBELET
+                EnvironmentVariables: >
+                  [
+                    {
+                      "name": "AWS_ACCOUNT_ID",
+                      "value": "#{BuildVariable.AWS_ACCOUNT_ID}",
+                      "type": "PLAINTEXT"
+                    },
+                    {
+                      "name": "AWS_DEFAULT_REGION",
+                      "value": "#{BuildVariable.AWS_DEFAULT_REGION}",
+                      "type": "PLAINTEXT"
+                    },
+                    {
+                      "name": "IMAGE_REPO_NAME",
+                      "value": "#{BuildVariable.IMAGE_REPO_NAME}",
+                      "type": "PLAINTEXT"
+                    },
+                    {
+                      "name": "IMAGE_TAG",
+                      "value": "#{BuildVariable.IMAGE_TAG}",
+                      "type": "PLAINTEXT"
+                    }
+                  ]
+              InputArtifacts: 
+                - Name: SourceOutput
+              # Namespace: String
+              # OutputArtifacts: 
+              #   - Name: BuildOutput
+              # Region: String
+              # RoleArn: String
+              RunOrder: 1
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # IAM Role (for EventBridge Rule)
+  #
+  EventBridgeRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      # RoleName: example-ec2-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - events.amazonaws.com
+      Policies:
+        - 
+          PolicyName: eventbridge-pipeline-execution
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'codepipeline:StartPipelineExecution'
+                Resource: !Sub 'arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}'
+  
+  #
+  # EventBridge - Rule
+  #
+  EventBridgeRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      EventPattern:
+        source:
+          - aws.codecommit
+        detail-type:
+          - CodeCommit Repository State Change
+        resources:
+          - !Sub 'arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CodeCommitRepositoryName}'
+        detail:
+          event:
+            - referenceCreated
+            - referenceUpdated
+          referenceType:
+            - branch
+          referenceName:
+            - !Ref CodeCommitBranchName
+      Targets:
+        - Arn: !Sub 'arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}'
+          RoleArn: !GetAtt EventBridgeRole.Arn
+          Id: !Ref Pipeline
