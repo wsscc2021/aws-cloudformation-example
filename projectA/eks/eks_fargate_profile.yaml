@@ -1,0 +1,62 @@
+
+Parameters:
+  EKSClusterName:
+    Description: 'The cluster name of eks'
+    Type: String
+
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+
+Resources:
+  #
+  # IAM Role (for pod execution)
+  #
+  Role:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: ecs-task-execution-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - eks-fargate-pods.amazonaws.com
+      # Policies: 
+      #   - PolicyName: dynamodb-query
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'dynamodb:Query'
+      #             - 'dynamodb:Scan'
+      #           Resource: '*'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy
+      Tags: 
+        - Key: key01
+          Value: value01
+
+
+  #
+  # EKS - Fargate Profile
+  #
+  FargateProfile:
+    Type: AWS::EKS::FargateProfile
+    Properties: 
+      FargateProfileName: dev-fargate-profile
+      ClusterName: !Ref EKSClusterName
+      PodExecutionRoleArn: !GetAtt Role.Arn
+      Selectors: 
+        - Namespace: dev
+          Labels:
+            - Key: eks.amazonaws.com/fargate
+              Value: 'true'
+      Subnets: !Ref SubnetIds
+      Tags: 
+        - Key: key01
+          Value: value01
