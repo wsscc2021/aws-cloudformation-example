@@ -1,0 +1,65 @@
+
+Parameters:
+  BucketName:
+    Description: 'The bucket name of s3'
+    Type: String
+
+Resources:
+  #
+  # CloudFront - OAI
+  #
+  OAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties: 
+      CloudFrontOriginAccessIdentityConfig: 
+        Comment: !Ref BucketName
+  
+  #
+  # CloudFront - Distribution
+  #
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties: 
+      DistributionConfig: 
+        Origins: 
+          - Id: S3Origin
+            DomainName: !Sub ${BucketName}.s3.amazonaws.com
+            OriginShield: 
+              Enabled: true
+              OriginShieldRegion: !Ref AWS::Region
+            S3OriginConfig: 
+              OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${OAI}
+        DefaultCacheBehavior: 
+          AllowedMethods: # GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE 
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods: # GET, HEAD, OPTIONS
+            - GET
+            - HEAD
+            - OPTIONS
+          # https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          Compress: true
+          ForwardedValues: 
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https # allow-all | https-only | redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2 # http1.1 | http2
+        IPV6Enabled: false
+        PriceClass: PriceClass_All # PriceClass_100 | PriceClass_200 | PriceClass_All
+        # Logging: 
+        #   Logging
+        # OriginGroups: 
+        #   Items: 
+        #     - OriginGroup
+        #   Quantity: Integer
+        # WebACLId: String
+      Tags: 
+        - Key: key01
+          Value: value01
+
