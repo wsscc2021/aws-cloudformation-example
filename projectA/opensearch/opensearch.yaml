@@ -1,0 +1,150 @@
+
+Parameters:
+  DomainName:
+    Description: 'The domain name of opensearch'
+    Type: String
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+
+Resources:
+  #
+  # KMS - Key
+  #
+  Key:
+    Type: AWS::KMS::Key
+    Properties: 
+      # Description: String
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy: 
+        Version: 2012-10-17
+        Id: key-default-1
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+      # KeySpec: String
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: 7
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # Secrets Manager - Secret
+  #
+  MasterUserSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub 'opensearch/${DomainName}/master'
+      Description: 'This is secret of opensearch master username and password'
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "master"}'
+        GenerateStringKey: 'password'
+        ExcludeCharacters: '"@/\'
+        PasswordLength: 16
+  
+  #
+  # Cloudwatch - Log Group
+  #
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Sub '/aws/opensearch/${DomainName}'
+      RetentionInDays: 14
+
+  #
+  # Cloudwatch - Resource Policy
+  #
+  ResourcePolicy:
+    Type: AWS::Logs::ResourcePolicy
+    Properties:
+      PolicyName: !Sub "Opensearch-Logs-ResourcePolicy"
+      PolicyDocument: !Sub >
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "es.amazonaws.com"
+              },
+              "Action": [
+                "logs:PutLogEvents",
+                "logs:CreateLogStream"
+              ],
+              "Resource": "${LogGroup.Arn}"
+            }
+          ]
+        }
+
+  #
+  # Opensearch - Domain
+  #
+  Domain:
+    Type: AWS::OpenSearchService::Domain
+    Properties: 
+      # AccessPolicies: Json
+      # AdvancedOptions: 
+      #   Key : Value
+      DomainName: !Ref DomainName
+      AdvancedSecurityOptions: 
+        Enabled: true
+        InternalUserDatabaseEnabled: true # true - MasterUserName, false - MasterUserArn
+        MasterUserOptions: 
+          # MasterUserARN: String # !!!
+          MasterUserName: !Sub '{{resolve:secretsmanager:${MasterUserSecret}:SecretString:username}}'
+          MasterUserPassword: !Sub '{{resolve:secretsmanager:${MasterUserSecret}:SecretString:password}}'
+      ClusterConfig: 
+        DedicatedMasterEnabled: true
+        DedicatedMasterCount: 3
+        DedicatedMasterType: r6g.large.search
+        InstanceCount: 3
+        InstanceType: r6g.large.search
+        WarmCount: 3
+        WarmEnabled: true
+        WarmType: ultrawarm1.medium.search
+        ZoneAwarenessEnabled: true
+        ZoneAwarenessConfig: 
+          AvailabilityZoneCount: 3
+      DomainEndpointOptions: 
+        EnforceHTTPS: true
+      EBSOptions: 
+        EBSEnabled: true
+        # Iops: Integer
+        VolumeSize: 20
+        VolumeType: gp2
+      EncryptionAtRestOptions: 
+        Enabled: true
+        KmsKeyId: !GetAtt Key.KeyId
+      EngineVersion: 'OpenSearch_1.2' # OpenSearch_X.Y | Elasticsearch_X.Y
+      LogPublishingOptions: 
+        SEARCH_SLOW_LOGS:
+          Enabled: true
+          CloudWatchLogsLogGroupArn: !GetAtt LogGroup.Arn
+        ES_APPLICATION_LOGS:
+          Enabled: true
+          CloudWatchLogsLogGroupArn: !GetAtt LogGroup.Arn
+        INDEX_SLOW_LOGS:
+          Enabled: true
+          CloudWatchLogsLogGroupArn: !GetAtt LogGroup.Arn
+        AUDIT_LOGS:
+          Enabled: true
+          CloudWatchLogsLogGroupArn: !GetAtt LogGroup.Arn
+      NodeToNodeEncryptionOptions: 
+        Enabled: true
+      # SnapshotOptions: 
+      #   AutomatedSnapshotStartHour: Integer
+      Tags: 
+        - Key: key01
+          Value: value01
+      VPCOptions: 
+        SecurityGroupIds: !Ref SecurityGroupIds
+        SubnetIds: !Ref SubnetIds
+
