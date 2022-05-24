@@ -10,3 +10,7 @@ Resources:
         LoadBalancerInfo:
           ContainerName: "webapp"
           ContainerPort: 5000
+        CapacityProviderStrategy:
+          - Base: 0
+            CapacityProvider: "example-ecs-cluster-EC2CapacityProvider-QWqu8ZG9Rvfl"
+            Weight: 2
