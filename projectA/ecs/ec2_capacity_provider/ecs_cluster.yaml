@@ -13,12 +13,12 @@ Resources:
       AutoScalingGroupProvider: 
         AutoScalingGroupArn: !Ref AutoScalingGroupArn
         ManagedScaling: 
-          InstanceWarmupPeriod: 30
+          InstanceWarmupPeriod: 120
           MaximumScalingStepSize: 20
-          MinimumScalingStepSize: 3
+          MinimumScalingStepSize: 1
           Status: ENABLED # DISABLED | ENABLED
           TargetCapacity: 100 # 1 ~ 100 (%)
-        ManagedTerminationProtection: ENABLED # DISABLED | ENABLED
+        ManagedTerminationProtection: DISABLED # DISABLED | ENABLED
       # Name: String
       # Tags: 
       #   - Tag

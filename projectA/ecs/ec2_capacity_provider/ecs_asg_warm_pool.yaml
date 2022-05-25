@@ -126,7 +126,7 @@ Resources:
       MaxSize: '20'
       HealthCheckGracePeriod: 60
       HealthCheckType: EC2 # EC2 , ELB
-      NewInstancesProtectedFromScaleIn: true
+      NewInstancesProtectedFromScaleIn: false
       LaunchTemplate: 
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber # DefaultVersionNumber , LatestVersionNumber
