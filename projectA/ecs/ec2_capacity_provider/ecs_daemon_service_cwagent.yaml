@@ -37,7 +37,7 @@ Resources:
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
-      LogGroupName: /ecs/ecs-cwagent-daemon-service
+      LogGroupName: !Sub /aws/ecs/${ClusterName}/ecs-cwagent-daemon-service
       RetentionInDays: 14
   ECSTaskDefinition:
     Type: AWS::ECS::TaskDefinition
