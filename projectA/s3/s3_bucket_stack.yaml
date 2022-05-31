@@ -1,6 +1,33 @@
 
 Resources:
   #
+  # KMS - Key
+  #
+  Key:
+    Type: AWS::KMS::Key
+    Properties: 
+      # Description: String
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy: 
+        Version: 2012-10-17
+        Id: key-default-1
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+      # KeySpec: String
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      PendingWindowInDays: 7
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
   # S3 Bucket
   #
   ExampleBucket:
@@ -21,7 +48,7 @@ Resources:
           - BucketKeyEnabled: true
             ServerSideEncryptionByDefault: 
               SSEAlgorithm: aws:kms # AES256 , aws:kms
-              # KMSMasterKeyID: String
+              KMSMasterKeyID: !GetAtt Key.Arn
       VersioningConfiguration: 
         Status: Enabled # Enabled , Suspended
       Tags: 
