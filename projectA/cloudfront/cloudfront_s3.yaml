@@ -42,7 +42,7 @@ Resources:
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
           Compress: true
           ForwardedValues: 
-            QueryString: 'false'
+            QueryString: false
             Cookies:
               Forward: none
           TargetOriginId: S3Origin
