@@ -1,0 +1,101 @@
+
+Parameters:
+  
+  ApplicationName:
+    Description: 'The application name of codedeploy'
+    Type: String
+
+  AutoScalingGroup:
+    Description: 'The name of auto scaling group'
+    Type: String
+
+  TargetGroupName:
+    Description: 'The name of target group'
+    Type: String
+
+Resources:
+  #
+  # IAM Role
+  #
+  Role:
+    Type: AWS::IAM::Role
+    Properties: 
+      # RoleName: example-ec2-role
+      # Description: description
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+      # Policies: 
+      #   -
+      #     PolicyName: ecs
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'logs:CreateLogStream'
+      #             - 'logs:PutLogEvents'
+      #           Resource: !GetAtt BuildProjectLogGroup.Arn
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
+      Tags: 
+        - Key: key01
+          Value: value01
+  
+  #
+  # CodeDeploy - Application
+  #
+  Application:
+    Type: AWS::CodeDeploy::Application
+    Properties: 
+      ApplicationName: !Ref ApplicationName
+      ComputePlatform: Server # ECS | Lambda | Server
+      Tags: 
+        - Key: key01
+          Value: value01
+
+  #
+  # CodeDeploy - Deployment Config
+  #
+  DeploymentConfig:
+    Type: AWS::CodeDeploy::DeploymentConfig
+    Properties: 
+      ComputePlatform: Server # ECS | Lambda | Server
+      DeploymentConfigName: 'EC2-Rollout-50Percent'
+      MinimumHealthyHosts: 
+        Type: FLEET_PERCENT
+        Value: 50
+
+  #
+  # CodeDeploy - Deployment Group
+  #
+  DeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties: 
+      # DeploymentGroupName: 'foo-webapp'
+      ApplicationName: !Ref Application
+      DeploymentConfigName: !Ref DeploymentConfig
+      DeploymentStyle: 
+        DeploymentOption: WITH_TRAFFIC_CONTROL
+        DeploymentType: IN_PLACE
+      AutoScalingGroups: 
+        - !Ref AutoScalingGroup
+      # Ec2TagFilters: 
+      #   - EC2TagFilter
+      # Ec2TagSet: 
+      #   EC2TagSet
+      LoadBalancerInfo: 
+        TargetGroupInfoList: 
+          - Name: !Ref TargetGroupName
+      ServiceRoleArn: !GetAtt Role.Arn
+      # Tags: 
+      #   - Tag
+      # TriggerConfigurations: 
+      #   - TriggerConfig
+

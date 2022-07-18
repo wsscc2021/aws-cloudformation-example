@@ -1,0 +1,34 @@
+
+Parameters:
+  BucketName:
+    Description: "The bucket name of s3"
+    Type: String
+
+Resources:
+  #
+  # S3 Bucket
+  #
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Ref BucketName
+      ObjectLockEnabled: false
+      OwnershipControls: 
+        Rules: 
+          - ObjectOwnership: BucketOwnerEnforced # BucketOwnerEnforced , ObjectWriter , BucketOwnerPreferred
+      PublicAccessBlockConfiguration: 
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+          - BucketKeyEnabled: true
+            ServerSideEncryptionByDefault: 
+              SSEAlgorithm: aws:kms # AES256 , aws:kms
+              # KMSMasterKeyID: String
+      VersioningConfiguration: 
+        Status: Enabled # Enabled , Suspended
+      Tags: 
+        - Key: key01
+          Value: value01

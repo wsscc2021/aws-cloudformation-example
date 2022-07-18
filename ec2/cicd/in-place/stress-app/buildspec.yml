@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "install pypy3.8"
+      - wget https://downloads.python.org/pypy/pypy3.8-v7.3.9-linux64.tar.bz2 -P /tmp/
+      - tar xf /tmp/pypy3.8-v7.3.9-linux64.tar.bz2 -C /tmp/
+  build:
+    commands:
+      - echo Build started on `date`
+      - /tmp/pypy3.8-v7.3.9-linux64/bin/pypy3 -m py_compile src/app.py
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - mv src/__pycache__/app.pypy38.pyc .
+
+artifacts:
+  files:
+    - scripts/**/*
+    - appspec.yml
+    - requirements.txt
+    - app.pypy38.pyc
