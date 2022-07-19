@@ -32,6 +32,7 @@ Resources:
   #
   ExampleBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
     Properties: 
       BucketName: useast1-example-bucket
       ObjectLockEnabled: false
