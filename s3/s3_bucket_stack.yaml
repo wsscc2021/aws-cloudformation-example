@@ -36,10 +36,6 @@ Resources:
       MultiRegion: false
       PendingWindowInDays: 7
       Tags: 
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -74,10 +70,6 @@ Resources:
       VersioningConfiguration: 
         Status: Enabled # Enabled , Suspended
       Tags: 
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
