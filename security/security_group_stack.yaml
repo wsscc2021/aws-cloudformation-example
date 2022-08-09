@@ -3,29 +3,49 @@ Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
 
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
+
 
 Resources:
   #
   # Security Groups
   #
-  Example:
+  App:
     Type: AWS::EC2::SecurityGroup
     Properties: 
-      GroupDescription: description
-      GroupName: example-sg
+      GroupDescription: "This security group for attached App"
+      GroupName: !Sub '${Prefix}-app-sg'
+      VpcId: !Ref VpcId
       Tags: 
         - Key: Name
-          Value: example-sg
-      VpcId: !Ref VpcId
+          Value: !Sub '${Prefix}-app-sg'
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
     
   #
   # Ingress Rules
   #
-  ExampleIngress1:
+  AppIngress1:
     Type: AWS::EC2::SecurityGroupIngress
     Properties: 
-      GroupId: !Ref ExampleSecurityGroup
-      # SourceSecurityGroupId: !Ref ExampleSecurityGroup
+      Description: "allow HTTPS protocol from ext-alb"
+      GroupId: !Ref App
+      # SourceSecurityGroupId: !Ref App
       # SourcePrefixListId: pl-63a5400a # you can check prefixlistID in console.
       CidrIp: 0.0.0.0/0
       IpProtocol: -1 # -1(all) , tcp , udp , icmp , icmpv6
@@ -35,11 +55,12 @@ Resources:
   #
   # Egress Rules
   #
-  ExampleEgress1:
+  AppEgress1:
     Type: AWS::EC2::SecurityGroupEgress
     Properties: 
-      GroupId: !Ref ExampleSecurityGroup
-      # DestinationSecurityGroupId: !Ref ExampleSecurityGroup
+      Description: "allow HTTPS protocol to internet(anywhere)"
+      GroupId: !Ref App
+      # DestinationSecurityGroupId: !Ref App
       CidrIp: 0.0.0.0/0
       IpProtocol: -1 # -1(all) , tcp , udp , icmp , icmpv6
       # FromPort: 443
