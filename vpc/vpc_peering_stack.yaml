@@ -31,10 +31,6 @@ Resources:
       Tags: 
         - Key: Name
           Value: !Sub '${ProjectName}-vpc-peering'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team

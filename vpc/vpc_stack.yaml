@@ -28,10 +28,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-vpc'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -46,10 +42,6 @@ Resources:
       Tags:
         - Key: Name
           Value:  !Sub '${Prefix}-igw'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -74,10 +66,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-public-subnet-a'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -93,10 +81,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-public-subnet-b'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -112,10 +96,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-public-subnet-c'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -134,10 +114,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-private-subnet-a'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -153,10 +129,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-private-subnet-b'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -172,10 +144,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-private-subnet-c'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -194,10 +162,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-data-subnet-a'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -213,10 +177,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-data-subnet-b'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -232,10 +192,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-data-subnet-c'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -252,10 +208,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-natgateway-a-eip'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -269,10 +221,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-natgateway-a'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -286,10 +234,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-natgateway-b-eip'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -303,10 +247,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-natgateway-b'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -320,10 +260,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-natgateway-c-eip'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -337,10 +273,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-natgateway-c'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -356,10 +288,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-public-rt'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -401,10 +329,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-private-rt-a'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -430,10 +354,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-private-rt-b'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -459,10 +379,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-private-rt-c'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
@@ -491,10 +407,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${Prefix}-data-rt'
-        - Key: account
-          Value: !Ref AWS::AccountId
-        - Key: region
-          Value: !Ref AWS::Region
         - Key: project
           Value: !Ref ProjectName
         - Key: owner:team
