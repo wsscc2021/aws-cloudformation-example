@@ -6,6 +6,16 @@ Parameters:
   TargetVPC:
     Type: AWS::EC2::VPC::Id
 
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
 Resources:
   #
   # VPC - PeeringConnection
@@ -19,5 +29,13 @@ Resources:
       PeerVpcId: !Ref TargetVPC
       VpcId: !Ref SourceVPC
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: Name
+          Value: !Sub '${ProjectName}-vpc-peering'
+        - Key: account
+          Value: !Ref AWS::AccountId
+        - Key: region
+          Value: !Ref AWS::Region
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
