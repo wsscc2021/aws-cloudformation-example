@@ -3,12 +3,30 @@ Parameters:
   ClusterName:
     Description: 'The cluster name of eks'
     Type: String
+    
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
+
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
+
   KeyPair:
     Type: AWS::EC2::KeyPair::KeyName
+  
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
 
 Resources:
   #
@@ -17,7 +35,7 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      # RoleName: ecs-task-execution-role
+      RoleName: !Sub '${Prefix}-eks-nodegroup-role'
       # Description: description
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -43,8 +61,10 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy        
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
 
   #
   # EC2 - Launch Template
@@ -72,12 +92,20 @@ Resources:
         TagSpecifications: 
           - ResourceType: instance # instance, volume
             Tags: 
-            - Key: Name
-              Value: example-eks-node-group-ec2
+              - Key: Name
+                Value: !Sub '${Prefix}-eks-nodegroup-ec2'
+              - Key: project
+                Value: !Ref ProjectName
+              - Key: owner:team
+                Value: !Ref OwnerTeamName
           - ResourceType: volume # instance, volume
             Tags: 
-            - Key: Name
-              Value: example-eks-node-group-ec2
+              - Key: Name
+                Value: !Sub '${Prefix}-eks-nodegroup-ec2'
+              - Key: project
+                Value: !Ref ProjectName
+              - Key: owner:team
+                Value: !Ref OwnerTeamName
         UserData:
           Fn::Base64:
             !Sub |
@@ -98,7 +126,7 @@ Resources:
   NodeGroup:
     Type: AWS::EKS::Nodegroup
     Properties: 
-      NodegroupName: 'example-eks-nodegroup'
+      NodegroupName: !Sub '${Prefix}-eks-nodegroup'
       AmiType: AL2_x86_64 # AL2_ARM_64 | AL2_x86_64 | AL2_x86_64_GPU | BOTTLEROCKET_ARM_64 | BOTTLEROCKET_x86_64 | CUSTOM
       CapacityType: ON_DEMAND # ON_DEMAND | SPOT
       ClusterName: !Ref ClusterName      
@@ -116,8 +144,11 @@ Resources:
       UpdateConfig: 
         # MaxUnavailable: 100
         MaxUnavailablePercentage: 100
-      # Tags:
-      #   Management: Tool
+      Tags:
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
       # Labels:
       #   Management: Tool
       # Taints: 

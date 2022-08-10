@@ -6,6 +6,21 @@ Parameters:
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
 
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
+
 Resources:
   #
   # IAM Role (For EKS Cluster)
@@ -13,8 +28,8 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      # RoleName: ecs-task-execution-role
-      # Description: description
+      RoleName: !Sub '${Prefix}-eks-cluster-role'
+      Description: "This role for eks cluster"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -37,8 +52,10 @@ Resources:
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
 
   #
   # KMS - Key
@@ -64,8 +81,12 @@ Resources:
       MultiRegion: false
       PendingWindowInDays: 7
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: Name
+          Value: !Sub '${Prefix}-eks-cluster'
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
 
   #
   # EKS - Cluster
@@ -73,7 +94,7 @@ Resources:
   Cluster:
     Type: AWS::EKS::Cluster
     Properties: 
-      Name: "example-eks-cluster"
+      Name: !Sub '${Prefix}-eks-cluster'
       Version: '1.21'
       RoleArn: !GetAtt Role.Arn
       EncryptionConfig: 
@@ -101,5 +122,7 @@ Resources:
             - Type: controllerManager
             - Type: scheduler
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
