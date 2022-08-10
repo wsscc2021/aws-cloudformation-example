@@ -6,6 +6,21 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
+
 Resources:
   #
   # MemoryDB - Parameter Group
@@ -14,7 +29,7 @@ Resources:
     Type: AWS::MemoryDB::ParameterGroup
     Properties: 
       # Description: String
-      ParameterGroupName: example-memorydb-parameter-group
+      ParameterGroupName: !Sub '${Prefix}-memorydb-parametergroup'
       Family: memorydb_redis6
       # Parameters: Json
 
@@ -25,7 +40,7 @@ Resources:
     Type: AWS::MemoryDB::SubnetGroup
     Properties: 
       # Description: String
-      SubnetGroupName: example-memorydb-subnet-group
+      SubnetGroupName: !Sub '${Prefix}-memorydb-subnetgroup'
       SubnetIds: !Ref SubnetIds
 
 
@@ -34,10 +49,11 @@ Resources:
   #
   MemoryDBCluster:
     Type: AWS::MemoryDB::Cluster
+    DeletionPolicy: Delete
     Properties: 
       ACLName: open-access
       AutoMinorVersionUpgrade: true
-      ClusterName: example-memorydb-cluster
+      ClusterName:  !Sub '${Prefix}-memorydb-cluster'
       # Description: String
       EngineVersion: '6.2'
       # KmsKeyId: String
@@ -53,3 +69,8 @@ Resources:
       # SnapshotWindow: String
       # SnapshotArns: 
       #   - String
+      Tags:
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName

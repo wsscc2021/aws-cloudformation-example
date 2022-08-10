@@ -6,6 +6,21 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
+
 Resources:
   #
   # Elasticache - Parameter Group
@@ -16,7 +31,7 @@ Resources:
       # memcached1.4 | memcached1.5 | memcached1.6 
       # redis2.6 | redis2.8 | redis3.2 | redis4.0 | redis5.0 | redis6.x
       CacheParameterGroupFamily: memcached1.6
-      Description: This is memcached parameter group
+      Description: "This is memcached parameter group"
       # Properties: 
       #   cluster-enabled: 'no'
 
@@ -26,7 +41,7 @@ Resources:
   ElasticacheSubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
     Properties: 
-      # CacheSubnetGroupName: String
+      CacheSubnetGroupName: !Sub '${Prefix}-memcached-cluster-subnetgroup'
       Description: This is memcached subnet group
       SubnetIds: !Ref SubnetIds
 
@@ -35,8 +50,9 @@ Resources:
   #
   ElasticacheCluster:
     Type: AWS::ElastiCache::CacheCluster
+    DeletionPolicy: Delete
     Properties: 
-      ClusterName: example-memcached-cluster
+      ClusterName: !Sub '${Prefix}-memcached-cluster'
       Engine: memcached # memcached | redis
       EngineVersion: '1.6.6' # aws elasticache describe-cache-engine-versions
       CacheNodeType: cache.m6g.large
@@ -47,3 +63,8 @@ Resources:
       AZMode: cross-az # cross-az | single-az
       AutoMinorVersionUpgrade: true
       VpcSecurityGroupIds: !Ref SecurityGroupIds
+      Tags:
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
