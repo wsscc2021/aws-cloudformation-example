@@ -6,6 +6,21 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
+
 Resources:
   #
   # IAM - Role (for RDS Monitoring)
@@ -13,6 +28,7 @@ Resources:
   MonitoringRole:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: !Sub '${Prefix}-aurora-mysql-monitoring-role'
       ManagedPolicyArns:
       - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
       AssumeRolePolicyDocument:
@@ -29,7 +45,7 @@ Resources:
   MasterUserSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: 'rds/aurora-mysql/admin'
+      Name: !Sub '${Prefix}-aurora-mysql-cluster/admin'
       Description: 'This is secret of rds username and password'
       GenerateSecretString:
         SecretStringTemplate: '{"username": "admin"}'
@@ -77,7 +93,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: aurora-mysql-subnet-group
+      DBSubnetGroupName: !Sub '${Prefix}-aurora-mysql-subnetgroup'
       SubnetIds: !Ref SubnetIds
   
   #
@@ -86,7 +102,7 @@ Resources:
   DBCluster:
     Type: AWS::RDS::DBCluster
     Properties: 
-      DBClusterIdentifier: aurora-mysql-cluster
+      DBClusterIdentifier: !Sub '${Prefix}-aurora-mysql-cluster'
       DBClusterParameterGroupName: !Ref DBClusterParameterGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
       Engine: aurora-mysql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql
@@ -112,8 +128,10 @@ Resources:
       VpcSecurityGroupIds: !Ref SecurityGroupIds
       DatabaseName: exampledb
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
 
   #
   # RDS - DBInstance (first)
@@ -122,7 +140,7 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
-      DBInstanceIdentifier: aurora-mysql-instance-1
+      DBInstanceIdentifier: !Sub '${Prefix}-aurora-mysql-instance-1'
       Engine: aurora-mysql
       # EngineVersion: 5.7.mysql_aurora.2.10.2
       DBInstanceClass: db.r6g.large
@@ -135,8 +153,10 @@ Resources:
       AutoMinorVersionUpgrade: true
       CopyTagsToSnapshot: true
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
       
   #
   # RDS - DBInstance (second)
@@ -145,7 +165,7 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
-      DBInstanceIdentifier: aurora-mysql-instance-2
+      DBInstanceIdentifier: !Sub '${Prefix}-aurora-mysql-instance-2'
       Engine: aurora-mysql
       # EngineVersion: 5.7.mysql_aurora.2.10.2
       DBInstanceClass: db.r6g.large
@@ -158,5 +178,7 @@ Resources:
       AutoMinorVersionUpgrade: true
       CopyTagsToSnapshot: true
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName

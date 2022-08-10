@@ -10,6 +10,21 @@ Parameters:
     Description: GlobalClusterIdentifier
     Type: String
 
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
+
 Resources:
   #
   # IAM - Role (for RDS Monitoring)
@@ -17,6 +32,7 @@ Resources:
   MonitoringRole:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: !Sub '${Prefix}-aurora-postgresql-monitoring-role'
       ManagedPolicyArns:
       - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
       AssumeRolePolicyDocument:
@@ -57,7 +73,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: aurora-postgresql-subnet-group
+      DBSubnetGroupName: !Sub '${Prefix}-aurora-postgresql-subnetgroup'
       SubnetIds: !Ref SubnetIds
 
   #
@@ -66,7 +82,7 @@ Resources:
   DBCluster:
     Type: AWS::RDS::DBCluster
     Properties: 
-      DBClusterIdentifier: aurora-postgresql-secondary-cluster
+      DBClusterIdentifier: !Sub '${Prefix}-aurora-postgresql-cluster'
       GlobalClusterIdentifier: !Ref GlobalClusterIdentifier
       DBClusterParameterGroupName: !Ref DBClusterParameterGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
@@ -85,8 +101,10 @@ Resources:
       KmsKeyId: 'alias/aws/rds'
       VpcSecurityGroupIds: !Ref SecurityGroupIds
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
 
   #
   # RDS - DBInstance (first)
@@ -95,7 +113,7 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
-      DBInstanceIdentifier: aurora-postgresql-secondary-instance-1
+      DBInstanceIdentifier: !Sub '${Prefix}-aurora-postgresql-instance-1'
       Engine: aurora-postgresql
       # EngineVersion: '13.6'
       DBInstanceClass: db.r6g.large
@@ -111,8 +129,10 @@ Resources:
       # PerformanceInsightsKMSKeyId: String
       PerformanceInsightsRetentionPeriod: 7 # 7 , 731 (days)
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
   
   #
   # RDS - DBInstance (second)
@@ -121,7 +141,7 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
-      DBInstanceIdentifier: aurora-postgresql-secondary-instance-2
+      DBInstanceIdentifier: !Sub '${Prefix}-aurora-postgresql-instance-2'
       Engine: aurora-postgresql
       # EngineVersion: '13.6'
       DBInstanceClass: db.r6g.large
@@ -137,5 +157,7 @@ Resources:
       # PerformanceInsightsKMSKeyId: String
       PerformanceInsightsRetentionPeriod: 7 # 7 , 731 (days)
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName

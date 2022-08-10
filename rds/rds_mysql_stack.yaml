@@ -6,6 +6,21 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
+
 Resources:
   #
   # IAM - Role (for RDS Monitoring)
@@ -13,6 +28,7 @@ Resources:
   MonitoringRole:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: !Sub '${Prefix}-rds-mysql-monitoring-role'
       ManagedPolicyArns:
       - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
       AssumeRolePolicyDocument:
@@ -29,7 +45,7 @@ Resources:
   MasterUserSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: 'rds/rds-mysql/admin'
+      Name: !Sub '${Prefix}-rds-mysql-instance/admin'
       Description: 'This is secret of rds username and password'
       GenerateSecretString:
         SecretStringTemplate: '{"username": "admin"}'
@@ -77,7 +93,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: rds-mysql-subnet-group
+      DBSubnetGroupName: !Sub '${Prefix}-rds-mysql-subnetgroup'
       SubnetIds: !Ref SubnetIds
 
   #
@@ -86,7 +102,7 @@ Resources:
   DBInstance:
     Type: AWS::RDS::DBInstance
     Properties: 
-      DBInstanceIdentifier: rds-mysql-instance
+      DBInstanceIdentifier: !Sub '${Prefix}-rds-mysql-instance'
       Engine: mysql # mysql , mariadb, aurora , aurora-mysql , aurora-postgresql ...
       EngineVersion: '8.0.28'
       DBInstanceClass: db.t4g.small
@@ -124,6 +140,7 @@ Resources:
       PubliclyAccessible: false
       VPCSecurityGroups: !Ref SecurityGroupIds
       Tags: 
-        - Key: key01
-          Value: value01
-      
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName

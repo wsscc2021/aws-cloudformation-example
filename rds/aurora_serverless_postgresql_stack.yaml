@@ -6,6 +6,21 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
+
 Resources:  
   #
   # Secrets Manager - Secret
@@ -13,7 +28,7 @@ Resources:
   MasterUserSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: 'rds/aurora-postgresql-serverless/postgres'
+      Name: !Sub '${Prefix}-aurora-postgresql-serverless-cluster/postgres'
       Description: 'This is secret of rds username and password'
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
@@ -50,7 +65,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: aurora-postgresql-serverless-subnet-group
+      DBSubnetGroupName: !Sub '${Prefix}-aurora-postgresql-serverless-subnetgroup'
       SubnetIds: !Ref SubnetIds
 
   #
@@ -59,7 +74,7 @@ Resources:
   DBCluster:
     Type: 'AWS::RDS::DBCluster'
     Properties:
-      DBClusterIdentifier: aurora-postgresql-serverless-cluster
+      DBClusterIdentifier: !Sub '${Prefix}-aurora-postgresql-serverless-cluster'
       Engine: aurora-postgresql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql
       EngineMode: serverless # provisioned , serverless , parallelquery , global , multimaster
       EngineVersion: '10.14'
@@ -81,5 +96,7 @@ Resources:
         MinCapacity: 2  # (postgres) 2 , 4 , 8 , 16 , 32 ,64 , 192 , 384
         SecondsUntilAutoPause: 300 # 300 ~ 86,400 (second)
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
