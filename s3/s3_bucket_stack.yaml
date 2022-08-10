@@ -3,7 +3,7 @@ Parameters:
   ProjectName:
     Type: String
     Description: 'The project name for provisioned this resources'
-    Default: Worldskills2022
+    Default: wsscc2022
 
   OwnerTeamName:
     Type: String
