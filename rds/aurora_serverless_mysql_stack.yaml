@@ -73,6 +73,7 @@ Resources:
   #
   DBCluster:
     Type: 'AWS::RDS::DBCluster'
+    DeletionPolicy: Delete
     Properties:
       DBClusterIdentifier: !Sub '${Prefix}-aurora-mysql-serverless-cluster'
       Engine: aurora-mysql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql

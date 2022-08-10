@@ -101,6 +101,7 @@ Resources:
   #
   DBCluster:
     Type: AWS::RDS::DBCluster
+    DeletionPolicy: Delete
     Properties: 
       DBClusterIdentifier: !Sub '${Prefix}-aurora-postgresql-cluster'
       Engine: aurora-postgresql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql
@@ -132,6 +133,7 @@ Resources:
   #
   DBInstance1:
     Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
       DBInstanceIdentifier: !Sub '${Prefix}-aurora-postgresql-instance-1'
@@ -160,6 +162,7 @@ Resources:
   #
   DBInstance2:
     Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
       DBInstanceIdentifier: !Sub '${Prefix}-aurora-postgresql-instance-2'

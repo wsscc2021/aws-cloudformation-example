@@ -101,6 +101,7 @@ Resources:
   #
   DBInstance:
     Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties: 
       DBInstanceIdentifier: !Sub '${Prefix}-rds-postgresql-instance'
       Engine: postgres # mysql , postgres , mariadb , aurora , aurora-mysql , aurora-postgresql ...

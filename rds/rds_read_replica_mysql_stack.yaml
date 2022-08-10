@@ -101,6 +101,7 @@ Resources:
   #
   DBInstance:
     Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties: 
       DBInstanceIdentifier: !Sub '${Prefix}-rds-mysql-instance'
       Engine: mysql # mysql , mariadb, aurora , aurora-mysql , aurora-postgresql ...
@@ -150,6 +151,7 @@ Resources:
   #
   DBInstanceReadReplica1:
     Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties:
       # DBClusterIdentifier: String
       DBInstanceIdentifier: !Sub '${Prefix}-rds-mysql-instance-rr-1'

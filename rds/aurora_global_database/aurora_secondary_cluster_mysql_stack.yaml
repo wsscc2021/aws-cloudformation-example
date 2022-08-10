@@ -81,6 +81,7 @@ Resources:
   #
   DBCluster:
     Type: AWS::RDS::DBCluster
+    DeletionPolicy: Delete
     Properties: 
       DBClusterIdentifier: !Sub '${Prefix}-aurora-mysql-cluster'
       GlobalClusterIdentifier: !Ref GlobalClusterIdentifier
@@ -119,6 +120,7 @@ Resources:
   #
   DBInstance1:
     Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
       DBInstanceIdentifier: !Sub '${Prefix}-aurora-mysql-instance-1'
@@ -144,6 +146,7 @@ Resources:
   #
   DBInstance2:
     Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
       DBInstanceIdentifier: !Sub '${Prefix}-aurora-mysql-instance-2'
