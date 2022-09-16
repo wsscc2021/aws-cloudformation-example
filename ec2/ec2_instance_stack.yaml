@@ -81,8 +81,7 @@ Resources:
       ImageId: !Ref AMI
       KeyName: !Ref KeyPair
       InstanceInitiatedShutdownBehavior: terminate # stop , terminate
-      Monitoring: # detailed monitoring
-        Enabled: true 
+      Monitoring: true # detailed monitoring
       SubnetId: !Ref SubnetId
       SecurityGroupIds: !Ref SecurityGroupIds
       PropagateTagsToVolumeOnCreation: true
