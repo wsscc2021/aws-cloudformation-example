@@ -2,6 +2,7 @@
 Parameters:
   OriginDomainName:
     Type: String
+    Description: "Origin Domain without protocol(https://)"
 
 Resources:
   #
@@ -99,6 +100,7 @@ Resources:
         #   ResponsePagePath: "/error-pages/404.html"
         #   ResponseCode: '200'
         #   ErrorCachingMinTTL: '30'
+        HttpVersion: http2 # http1.1 | http2
         PriceClass: PriceClass_All
         # Restrictions:
         #   GeoRestriction:
