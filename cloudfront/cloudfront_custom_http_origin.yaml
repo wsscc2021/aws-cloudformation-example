@@ -71,7 +71,7 @@ Resources:
           CustomOriginConfig:
             HTTPPort: '80'
             HTTPSPort: '443'
-            OriginProtocolPolicy: http-only
+            OriginProtocolPolicy: http-only # http-only | https-only | match-viewer
         Enabled: 'true'
         # Comment: Somecomment
         # DefaultRootObject: index.html
