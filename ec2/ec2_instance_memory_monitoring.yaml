@@ -1,5 +1,5 @@
 
-Parameters:  
+Parameters:
   SubnetId:
     Type: AWS::EC2::Subnet::Id
 
@@ -12,6 +12,21 @@ Parameters:
   AMI:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
 
 Resources:
   #
@@ -20,8 +35,8 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      # RoleName: example-ec2-role
-      # Description: description
+      RoleName: !Sub '${Prefix}-ec2-role'
+      Description: 'The role of ec2 instance'
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -48,7 +63,7 @@ Resources:
       Tags: 
         - Key: key01
           Value: value01
-
+  
   #
   # IAM Instance Profile
   #
@@ -81,14 +96,17 @@ Resources:
       ImageId: !Ref AMI
       KeyName: !Ref KeyPair
       InstanceInitiatedShutdownBehavior: terminate # stop , terminate
-      Monitoring: # detailed monitoring
-        Enabled: true 
+      Monitoring: true # detailed monitoring
       SubnetId: !Ref SubnetId
       SecurityGroupIds: !Ref SecurityGroupIds
       PropagateTagsToVolumeOnCreation: true
       Tags: 
         - Key: Name
-          Value: cfn-example-ec2
+          Value: !Sub '${Prefix}-ec2'
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: owner:team
+          Value: !Ref OwnerTeamName
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -xe

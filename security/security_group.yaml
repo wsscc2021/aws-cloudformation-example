@@ -43,7 +43,7 @@ Resources:
   AppIngress1:
     Type: AWS::EC2::SecurityGroupIngress
     Properties: 
-      Description: "allow HTTPS protocol from ext-alb"
+      Description: "allow all traffic from anywhere"
       GroupId: !Ref App
       # SourceSecurityGroupId: !Ref App
       # SourcePrefixListId: pl-63a5400a # you can check prefixlistID in console.
@@ -58,7 +58,7 @@ Resources:
   AppEgress1:
     Type: AWS::EC2::SecurityGroupEgress
     Properties: 
-      Description: "allow HTTPS protocol to internet(anywhere)"
+      Description: "allow all traffic to anywhere"
       GroupId: !Ref App
       # DestinationSecurityGroupId: !Ref App
       CidrIp: 0.0.0.0/0

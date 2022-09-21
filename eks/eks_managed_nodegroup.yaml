@@ -145,10 +145,8 @@ Resources:
         # MaxUnavailable: 100
         MaxUnavailablePercentage: 100
       Tags:
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        project: !Ref ProjectName
+        owner:team: !Ref OwnerTeamName
       # Labels:
       #   Management: Tool
       # Taints: 
