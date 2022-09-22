@@ -4,7 +4,7 @@ Cloudformation does not support signing job.
 
 You can't sign your code for deploy function through cloudformation.
 
-So, You have to split the work that is deploying code signing function.
+So, You have to split the work that is deploying function from signed code.
 
 ## Quick Started
 
