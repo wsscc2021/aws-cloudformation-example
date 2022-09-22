@@ -1,3 +1,18 @@
+Parameters:
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
 
 Resources:
   #
@@ -30,8 +45,10 @@ Resources:
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
 
   #
   # Lambda - Function
@@ -40,7 +57,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties: 
       FunctionName: myFunction
-      Description: description
+      Description: "The lambda function with provisioned concurrency"
       Runtime: python3.9 # python3.9 , nodejs14.x  ...
       Architectures: # arm64 , x86_64
         - arm64
@@ -63,14 +80,16 @@ Resources:
       Role: !GetAtt Role.Arn
       EphemeralStorage: 
         Size: 512 # MB
-      Environment: 
-        Variables:  
-          key01: value01
+      # Environment: 
+      #   Variables:  
+      #     key01: value01
+      # TracingConfig: 
+      #   Mode: Active # Active , PassThrough
       Tags: 
-        - Key: key01
-          Value: value01
-      TracingConfig: 
-        Mode: Active # Active , PassThrough
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
 
   #
   # Lambda - Version
@@ -81,7 +100,7 @@ Resources:
     Properties: 
       # CodeSha256: String
       # Description: String
-      FunctionName: myFunction
+      FunctionName: !Ref Function
       # ProvisionedConcurrencyConfig: 
       #   ProvisionedConcurrentExecutions: 1
 
@@ -94,7 +113,7 @@ Resources:
     Properties: 
       Name: prod
       # Description: String
-      FunctionName: myFunction
+      FunctionName: !Ref Function
       FunctionVersion: !GetAtt FunctionVersion.Version
       ProvisionedConcurrencyConfig: 
         ProvisionedConcurrentExecutions: 1
@@ -146,6 +165,6 @@ Resources:
         PredefinedMetricSpecification: 
           PredefinedMetricType: LambdaProvisionedConcurrencyUtilization
           # ResourceLabel: String
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        TargetValue: 0.7
+        ScaleInCooldown: 60 # seconds
+        ScaleOutCooldown: 60 # seconds
+        TargetValue: 0.7 # 70%

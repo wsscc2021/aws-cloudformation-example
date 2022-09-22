@@ -1,0 +1,38 @@
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+  Prefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: useast1-wsscc2022
+
+Resources:
+  #
+  # AWS Signer - SigningProfile
+  #
+  SigningProfile:
+    Type: AWS::Signer::SigningProfile
+    Properties: 
+      PlatformId: AWSLambda-SHA384-ECDSA
+      SignatureValidityPeriod: 
+          Type: DAYS # DAYS | MONTHS | YEARS
+          Value: 7
+      Tags: 
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
+
+Outputs:
+  SigningProfileVersionArn:
+    Description: "The Signing profile version arn for lambda csc"
+    Value: !GetAtt SigningProfile.ProfileVersionArn

@@ -1,4 +1,3 @@
-
 Parameters:
   ProjectName:
     Type: String
@@ -22,8 +21,8 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: myFunction-role
-      Description: description
+      RoleName: lambda-myFunction-role
+      Description: "The role for lambda function myFunction"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -58,7 +57,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties: 
       FunctionName: myFunction
-      Description: 'The Lambda Function'
+      Description: "The lambda function for function url"
       Runtime: python3.9 # python3.9 , nodejs14.x  ...
       Architectures: # arm64 , x86_64
         - arm64
@@ -91,3 +90,25 @@ Resources:
           Value: !Ref ProjectName
         - Key: OwnerTeamName
           Value: !Ref OwnerTeamName
+  
+  #
+  # Lambda - Function URL
+  #
+  FunctionURL:
+    Type: AWS::Lambda::Url
+    Properties: 
+      AuthType: NONE # AWS_IAM | NONE
+      Cors: 
+        AllowCredentials: False
+        AllowMethods: # GET | POST | DELETE | *
+          - GET
+        AllowOrigins: # https://www.example.com ...
+          - '*'
+        # AllowHeaders: 
+        #   - String
+        # ExposeHeaders: 
+        #   - String
+        # MaxAge: Integer # Browser can cache to [MaxAge]
+      # InvokeMode: String # Not currently supported by AWS Cloudformation
+      # Qualifier: String
+      TargetFunctionArn: !GetAtt Function.Arn
