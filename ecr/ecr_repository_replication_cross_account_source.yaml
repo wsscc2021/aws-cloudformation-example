@@ -1,0 +1,29 @@
+
+Parameters:
+  SourceRepository:
+    Type: String
+    Description: "The Repository that you want replication to other account."
+
+  TargetRegion:
+    Type: String
+    Description: "The Region that your replication destination"
+
+  TargetAccountId:
+    Type: String
+    Description: "The Account Id that your target"
+
+Resources:
+  #
+  # ECR - Replication Configuration
+  #
+  ReplicationConfiguration:
+    Type: AWS::ECR::ReplicationConfiguration
+    Properties: 
+      ReplicationConfiguration: 
+        Rules: 
+          - Destinations: 
+              - Region: !Ref TargetRegion # your region
+                RegistryId: !Ref TargetAccountId # your account
+            RepositoryFilters: 
+              - Filter: !Ref SourceRepository
+                FilterType: PREFIX_MATCH

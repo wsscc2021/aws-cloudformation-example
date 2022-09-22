@@ -1,0 +1,28 @@
+
+Parameters:
+  SourceRepository:
+    Type: String
+    Description: "The Repository that you want replication to other region."
+
+  SourceAccountId:
+    Type: String
+    Description: "The Region that your replication destination"
+
+Resources:
+  #
+  # ECR - Replication Configuration
+  #
+  RegistryPolicy:
+    Type: 'AWS::ECR::RegistryPolicy'
+    Properties:
+      PolicyText:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowReplicationFromOtherAccount
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${SourceAccountId}:root'
+            Action:
+              - 'ecr:CreateRepository'
+              - 'ecr:ReplicateImage'
+            Resource: !Sub 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${SourceRepository}'
