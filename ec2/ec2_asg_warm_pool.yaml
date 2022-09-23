@@ -22,10 +22,6 @@ Parameters:
     Description: "The AMI for launched instances"
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
 
-  TargetGroupARNs:
-    Type: CommaDelimitedList
-    Description: "The Target Group Arns that will be attached instance to alb"
-
   ProjectName:
     Type: String
     Description: "The project name for provisioned this resources"
@@ -36,6 +32,7 @@ Parameters:
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
+
 Resources:
   #
   # IAM Role
@@ -43,8 +40,8 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      # RoleName: example-ec2-role
-      # Description: description
+      RoleName: !Sub '${AutoScalingGroupName}-role'
+      Description: !Sub "The role for ${AutoScalingGroupName}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -136,20 +133,7 @@ Resources:
               Value: !Ref ProjectName
             - Key: OwnerTeamName
               Value: !Ref OwnerTeamName
-        UserData:
-          Fn::Base64: !Sub |
-            #!/bin/bash -xe
-            yum install -y httpd
-            cat << EOF >> /var/www/html/index.html
-            <html>
-              <body>
-                <h1>Auto Scaling Group Demo</h1>
-                <p>This is example page for auto scaling group demonstration</p>
-              </body>
-            </html>
-            EOF
-            systemctl enable httpd.service
-            systemctl start httpd.service
+  
   
   #
   # Auto Scaling Group
@@ -165,7 +149,7 @@ Resources:
       MinSize: '2'
       MaxSize: '20'
       HealthCheckGracePeriod: 60
-      HealthCheckType: ELB # EC2 , ELB
+      HealthCheckType: EC2 # EC2 , ELB
       LaunchTemplate: 
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber # DefaultVersionNumber , LatestVersionNumber
@@ -173,5 +157,17 @@ Resources:
         - PropagateAtLaunch: true
           Key: Name
           Value: !Sub "${AutoScalingGroupName}-ec2"
-      TargetGroupARNs: !Ref TargetGroupARNs
+      # TargetGroupARNs: 
+      #   - String
       VPCZoneIdentifier: !Ref SubnetIds
+  
+  WarmPool:
+    Type: AWS::AutoScaling::WarmPool
+    DependsOn: AutoScalingGroup
+    Properties: 
+      AutoScalingGroupName: !Ref AutoScalingGroupName
+      InstanceReusePolicy: 
+        ReuseOnScaleIn: False
+      MaxGroupPreparedCapacity: 3
+      MinSize: 3
+      PoolState: Stopped # Hibernated | Running | Stopped

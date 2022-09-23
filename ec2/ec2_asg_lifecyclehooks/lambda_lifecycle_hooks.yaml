@@ -1,0 +1,131 @@
+
+Parameters:
+  AutoScalingGroupName:
+    Type: String
+    Description: "The Auto Scaling Group Name for lambda functions permission"
+
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+Resources:
+  #
+  # IAM - Role
+  #
+  Role:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: lambda-bootstrap-function-role
+      Description: "The role for function, lambda-bootstrap-function"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      Policies: 
+        - PolicyName: ec2-asg-lifecyclehook
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'autoscaling:CompleteLifecycleAction'
+                Resource: !Sub 'arn:aws:autoscaling:${AWS::Region}:${AWS::AccountId}:autoScalingGroup:*:autoScalingGroupName/${AutoScalingGroupName}'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags: 
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
+
+  #
+  # Lambda - Function
+  #
+  Function:
+    Type: AWS::Lambda::Function
+    Properties: 
+      FunctionName: lambda-bootstrap-function
+      Description: "The Lambda Function for bootstrap on ec2 instance started"
+      Runtime: python3.9 # python3.9 , nodejs14.x  ...
+      Architectures: # arm64 , x86_64
+        - arm64
+      PackageType: Zip # Image , Zip
+      Code: 
+        # S3Bucket: String
+        # S3Key: String
+        # S3ObjectVersion: String
+        ZipFile: >
+          import boto3
+          
+          def handler(event, context):
+              print("== init bootstrap function ==")
+              print(event)
+              client = boto3.client('autoscaling')
+              source = event['detail']
+              response = client.complete_lifecycle_action(
+                  LifecycleHookName=source['LifecycleHookName'],
+                  AutoScalingGroupName=source['AutoScalingGroupName'],
+                  LifecycleActionToken=source['LifecycleActionToken'],
+                  LifecycleActionResult='CONTINUE', # CONTINUE or ABANDON
+                  InstanceId=source['EC2InstanceId']
+              )
+      Handler: index.handler
+      MemorySize: 512 # MB
+      Timeout: 60 # seconds
+      Role: !GetAtt Role.Arn
+      EphemeralStorage: 
+        Size: 512 # MB
+      # Environment: 
+      #   Variables:  
+      #     key01: value01
+      # TracingConfig: 
+      #   Mode: Active # Active , PassThrough
+      Tags: 
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
+
+  #
+  # EventBridge - Rules
+  #
+  EventBridgeRule:
+    Type: AWS::Events::Rule
+    Properties: 
+      Name: !Sub "${AutoScalingGroupName}-lifecyclehook-InstanceLaunch"
+      Description: !Sub "Trigger from Instance-launch on ${AutoScalingGroupName}"
+      State: ENABLED # DISABLED | ENABLED
+      EventBusName: default
+      EventPattern: !Sub |
+        {
+          "source": ["aws.autoscaling"],
+          "detail-type": ["EC2 Instance-launch Lifecycle Action"],
+          "detail": {
+            "AutoScalingGroupName": ["${AutoScalingGroupName}"]
+          }
+        }
+      Targets: 
+        - Arn: !GetAtt Function.Arn
+          Id: !Ref Function
+  
+  #
+  # Lambda Permissions
+  #
+  PermissionForEventsToInvokeLambda:   
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref Function
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt EventBridgeRule.Arn   
