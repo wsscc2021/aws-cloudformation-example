@@ -2,10 +2,22 @@
 Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
+    Description: "The vpc id for application load balancer"
   
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
-  
+    Description: "The subnet ids for application load balancer"
+
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
 Resources:
   #
   # ELBv2 - Target Group
@@ -25,8 +37,10 @@ Resources:
       Port: 80
       Protocol: TCP # TCP, UDP, TCP_UDP, TLS
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
       TargetGroupAttributes: 
         - Key: deregistration_delay.timeout_seconds
           Value: 30
@@ -48,8 +62,10 @@ Resources:
       #     value: true
       Subnets: !Ref SubnetIds
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
   
   #
   # ELBv2 - Network Load Balancer Listener
