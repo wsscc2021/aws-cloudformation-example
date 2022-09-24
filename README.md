@@ -22,5 +22,5 @@ If you using cloudformation, you can write code more detailed configuration than
 4. Upload modified template files to s3 bucket which was created.
     - https://docs.aws.amazon.com/AmazonS3/latest/userguide/uploading-an-object-bucket.html
 
-5. Create Cloudformation template
+5. Create Cloudformation stack
     - https://docs.aws.amazon.com/ko_kr/AWSCloudFormation/latest/UserGuide/using-cfn-cli-creating-stack.html
