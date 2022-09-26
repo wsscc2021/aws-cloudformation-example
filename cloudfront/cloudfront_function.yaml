@@ -15,9 +15,6 @@ Parameters:
     Default: TeamKorea
 
 Resources:
-  #
-  # CloudFront - OriginAccessControl
-  #
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties: 
@@ -27,10 +24,26 @@ Resources:
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
+  
+  CloudFrontFunction:
+    Type: AWS::CloudFront::Function
+    Properties: 
+      Name: !Sub "cf-redirect-function"
+      AutoPublish: true
+      FunctionConfig: 
+        Comment: "The function for redirect to elb origin"
+        Runtime: cloudfront-js-1.0
+      FunctionCode: !Sub |
+        function handler(event) {
+          return {
+            statusCode: 302,
+            statusDescription: 'Found',
+            headers: {
+              location: { value: 'https://duyru2y9nqcmv.cloudfront.net/' }
+            }
+          }
+        }
 
-  #
-  # CloudFront - Distribution
-  #
   Distribution:
     Type: AWS::CloudFront::Distribution
     Properties: 
@@ -62,6 +75,9 @@ Resources:
               Forward: none
           TargetOriginId: S3Origin
           ViewerProtocolPolicy: redirect-to-https # allow-all | https-only | redirect-to-https
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt CloudFrontFunction.FunctionMetadata.FunctionARN
         DefaultRootObject: index.html
         Enabled: true
         HttpVersion: http2and3 # http1.1 | http2 | http2and3 | http3

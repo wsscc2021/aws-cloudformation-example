@@ -2,8 +2,12 @@
 Parameters:
   OriginDomainName:
     Type: String
-    Description: "Origin Domain without protocol(https://)"
+    Description: "Origin Domain without protocol(http://)"
   
+  LambdaFunctionVersionArn:
+    Type: String
+    Description: "The lambda function arn for lambda@edge, must be specified version"
+
   ProjectName:
     Type: String
     Description: "The project name for provisioned this resources"
@@ -81,7 +85,7 @@ Resources:
           CustomOriginConfig:
             HTTPPort: '80'
             HTTPSPort: '443'
-            OriginProtocolPolicy: https-only # http-only | https-only | match-viewer
+            OriginProtocolPolicy: http-only # http-only | https-only | match-viewer
         Enabled: 'true'
         # Comment: Somecomment
         # DefaultRootObject: index.html
@@ -97,14 +101,11 @@ Resources:
           SmoothStreaming: 'false'
           CachePolicyId: !GetAtt CachePolicy.Id
           OriginRequestPolicyId: !GetAtt OriginRequestPolicy.Id
-          # ForwardedValues:
-          #   QueryString: 'false'
-          #   Cookies:
-          #     Forward: all
-          # TrustedSigners:
-          # - 1234567890EX
-          # - 1234567891EX
           ViewerProtocolPolicy: allow-all
+          LambdaFunctionAssociations: 
+            - EventType: origin-response # viewer-request, viewer-response, origin-request, origin-response
+              IncludeBody: false
+              LambdaFunctionARN: !Ref LambdaFunctionVersionArn
         # CustomErrorResponses:
         # - ErrorCode: '404'
         #   ResponsePagePath: "/error-pages/404.html"

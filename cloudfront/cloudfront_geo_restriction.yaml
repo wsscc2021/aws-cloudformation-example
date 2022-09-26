@@ -74,6 +74,11 @@ Resources:
         #     - OriginGroup
         #   Quantity: Integer
         # WebACLId: String
+        Restrictions: 
+          GeoRestriction: 
+            RestrictionType: blacklist # blacklist | none | whitelist
+            Locations: # ISO 3166 country code (Alpha-2)
+              - KR
       Tags: 
         - Key: ProjectName
           Value: !Ref ProjectName

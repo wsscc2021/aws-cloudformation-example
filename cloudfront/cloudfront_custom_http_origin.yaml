@@ -2,7 +2,17 @@
 Parameters:
   OriginDomainName:
     Type: String
-    Description: "Origin Domain without protocol(https://)"
+    Description: "Origin Domain without protocol(http://)"
+  
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
 
 Resources:
   #
@@ -100,7 +110,7 @@ Resources:
         #   ResponsePagePath: "/error-pages/404.html"
         #   ResponseCode: '200'
         #   ErrorCachingMinTTL: '30'
-        HttpVersion: http2 # http1.1 | http2
+        HttpVersion: http2and3 # http1.1 | http2 | http2and3 | http3
         PriceClass: PriceClass_All
         # Restrictions:
         #   GeoRestriction:
@@ -110,3 +120,8 @@ Resources:
         #     - CV
         # ViewerCertificate:
         #   CloudFrontDefaultCertificate: 'true'
+      Tags: 
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
