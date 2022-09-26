@@ -1,0 +1,99 @@
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: "The vpc id for application load balancer"
+  
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: "The subnet ids for application load balancer"
+
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: "The security group ids for application load balancer"
+  
+  CertificateArn:
+    Type: String
+    Description: "The certificate arn from ACM for grpc"
+
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+Resources:
+  #
+  # ELBv2 - Target Group
+  #
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties: 
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 15
+      HealthCheckPath: /AWS.ALB/healthcheck
+      HealthCheckPort: 50051
+      HealthCheckProtocol: HTTP # HTTP , HTTPS
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      IpAddressType: ipv4 # ipv4 , ipv6
+      Name: example-grpc-tg
+      Port: 50051
+      Protocol: HTTP # HTTP , HTTPS
+      ProtocolVersion: GRPC # GRPC , HTTP1 , HTTP2
+      Tags: 
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
+      TargetGroupAttributes: 
+        - Key: deregistration_delay.timeout_seconds
+          Value: 30
+      TargetType: instance # instance , ip , lambda , alb
+      VpcId: !Ref VpcId
+
+  #
+  # ELBv2 - Internet-facing ALB
+  #
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Name: example-grpc-ext-alb
+      Type: application # application , network , gateway
+      Scheme: internet-facing # internal , internet-facing
+      IpAddressType: ipv4 # ipv4 , ipv6
+      LoadBalancerAttributes: 
+        - Key: routing.http2.enabled
+          Value: true
+      SecurityGroups: !Ref SecurityGroupIds
+      Subnets: !Ref SubnetIds
+      Tags: 
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
+      
+  #
+  # ELBv2 - Listener
+  #
+  ApplicationLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties: 
+      Certificates: 
+        - CertificateArn: !Ref CertificateArn
+      # SslPolicy: String
+      # https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies
+      DefaultActions: 
+        - Type: fixed-response
+          FixedResponseConfig: 
+            ContentType: text/plain
+            MessageBody: "Content not found"
+            StatusCode: '404'
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 50051
+      Protocol: HTTPS # GENEVE , HTTP , HTTPS , TCP , TCP_UDP , TLS , UDP
