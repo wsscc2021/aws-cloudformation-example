@@ -1,0 +1,58 @@
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: wsscc2022
+
+  OwnerTeamName:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+  
+  ApplicationLoadBalancerArn:
+    Type: String
+    Description: "The arn of application load balancer, backend"
+
+Resources:
+  Accelerator:
+    Type: AWS::GlobalAccelerator::Accelerator
+    Properties: 
+      Name: aga-example-standard
+      Enabled: True
+      # IpAddresses: 
+      #   - String
+      IpAddressType: IPV4 # DUAL_STACK | IPV4
+      Tags: 
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: OwnerTeamName
+          Value: !Ref OwnerTeamName
+
+  Listener:
+    Type: AWS::GlobalAccelerator::Listener
+    Properties: 
+      AcceleratorArn: !GetAtt Accelerator.AcceleratorArn
+      ClientAffinity: NONE # NONE | SOURCE_IP
+      PortRanges: 
+        - FromPort: 80
+          ToPort: 80
+      Protocol: TCP # TCP | UDP
+
+  EndpointGroup:
+    Type: AWS::GlobalAccelerator::EndpointGroup
+    Properties: 
+      EndpointConfigurations: 
+        - ClientIPPreservationEnabled: True
+          EndpointId: !Ref ApplicationLoadBalancerArn
+          Weight: 128
+      EndpointGroupRegion: !Ref AWS::Region
+      HealthCheckIntervalSeconds: 30 # 10 or 30
+      HealthCheckPath: /
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP # HTTP | HTTPS | TCP
+      ThresholdCount: 3
+      ListenerArn: !GetAtt Listener.ListenerArn
+      # PortOverrides: 
+      #   - PortOverride
+      TrafficDialPercentage: 100
