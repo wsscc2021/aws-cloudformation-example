@@ -13,20 +13,20 @@ Parameters:
   KeyPair:
     Type: AWS::EC2::KeyPair::KeyName
   
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -35,7 +35,7 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: !Sub '${Prefix}-eks-nodegroup-role'
+      RoleName: !Sub '${NamePrefix}-eks-nodegroup-role'
       # Description: description
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -61,10 +61,10 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy        
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # EC2 - Launch Template
@@ -93,19 +93,19 @@ Resources:
           - ResourceType: instance # instance, volume
             Tags: 
               - Key: Name
-                Value: !Sub '${Prefix}-eks-nodegroup-ec2'
-              - Key: project
-                Value: !Ref ProjectName
-              - Key: owner:team
-                Value: !Ref OwnerTeamName
+                Value: !Sub '${NamePrefix}-eks-nodegroup-ec2'
+              - Key: Project
+                Value: !Ref Project
+              - Key: Owner
+                Value: !Ref Owner
           - ResourceType: volume # instance, volume
             Tags: 
               - Key: Name
-                Value: !Sub '${Prefix}-eks-nodegroup-ec2'
-              - Key: project
-                Value: !Ref ProjectName
-              - Key: owner:team
-                Value: !Ref OwnerTeamName
+                Value: !Sub '${NamePrefix}-eks-nodegroup-ec2'
+              - Key: Project
+                Value: !Ref Project
+              - Key: Owner
+                Value: !Ref Owner
         UserData:
           Fn::Base64:
             !Sub |
@@ -126,7 +126,7 @@ Resources:
   NodeGroup:
     Type: AWS::EKS::Nodegroup
     Properties: 
-      NodegroupName: !Sub '${Prefix}-eks-nodegroup'
+      NodegroupName: !Sub '${NamePrefix}-eks-nodegroup'
       AmiType: AL2_x86_64 # AL2_ARM_64 | AL2_x86_64 | AL2_x86_64_GPU | BOTTLEROCKET_ARM_64 | BOTTLEROCKET_x86_64 | CUSTOM
       CapacityType: ON_DEMAND # ON_DEMAND | SPOT
       ClusterName: !Ref ClusterName      

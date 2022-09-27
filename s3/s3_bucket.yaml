@@ -1,18 +1,18 @@
 
 Parameters:
-  ProjectName:
-    Type: String
-    Description: 'The project name for provisioned this resources'
-    Default: wsscc2022
-
-  OwnerTeamName:
-    Type: String
-    Description: 'The team name for owned this resources'
-    Default: TeamKorea
-
   BucketName:
     Type: String
-    Description: 'The s3 bucket name, should be unique in all accounts'
+    Description: "The s3 bucket name, should be unique in all accounts"
+
+  Project:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: Unicorn.Rental
+
+  Owner:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
 
 Resources:
   CMK:
@@ -36,10 +36,10 @@ Resources:
       MultiRegion: false
       PendingWindowInDays: 7
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   CMKAlias:
     Type: AWS::KMS::Alias
@@ -70,7 +70,7 @@ Resources:
       VersioningConfiguration: 
         Status: Enabled # Enabled , Suspended
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

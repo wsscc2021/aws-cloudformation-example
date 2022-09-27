@@ -6,20 +6,20 @@ Parameters:
   SecurityGroups:
     Type: List<AWS::EC2::SecurityGroup::Id>  
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -53,10 +53,10 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
       Tags: 
-        - Key: ProjectName
-          Value: !Ref ProjectName
-        - Key: OwnerTeamName
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # Lambda - Function
@@ -94,10 +94,10 @@ Resources:
       # TracingConfig: 
       #   Mode: Active # Active , PassThrough
       Tags: 
-        - Key: ProjectName
-          Value: !Ref ProjectName
-        - Key: OwnerTeamName
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
       VpcConfig: 
         SecurityGroupIds: !Ref SecurityGroups
         SubnetIds: !Ref Subnets

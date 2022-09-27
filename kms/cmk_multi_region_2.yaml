@@ -4,20 +4,20 @@ Parameters:
     Type: String
     Description: "The KeyArn from replication source cmk"
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:  
   ReplicaKey:
@@ -38,10 +38,10 @@ Resources:
       PendingWindowInDays: 7
       PrimaryKeyArn: !Ref PrimaryKeyArn
       Tags: 
-        - Key: ProjectName
-          Value: !Ref ProjectName
-        - Key: OwnerTeamName
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   ReplicaKeyAlias:
     Type: 'AWS::KMS::Alias'

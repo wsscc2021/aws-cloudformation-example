@@ -6,20 +6,20 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -28,7 +28,7 @@ Resources:
   MonitoringRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: !Sub '${Prefix}-aurora-postgresql-monitoring-role'
+      RoleName: !Sub '${NamePrefix}-aurora-postgresql-monitoring-role'
       ManagedPolicyArns:
       - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
       AssumeRolePolicyDocument:
@@ -45,7 +45,7 @@ Resources:
   MasterUserSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: !Sub '${Prefix}-aurora-postgresql-cluster/postgres'
+      Name: !Sub '${NamePrefix}-aurora-postgresql-cluster/postgres'
       Description: 'This is secret of rds username and password'
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
@@ -93,7 +93,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: !Sub '${Prefix}-aurora-postgresql-subnetgroup'
+      DBSubnetGroupName: !Sub '${NamePrefix}-aurora-postgresql-subnetgroup'
       SubnetIds: !Ref SubnetIds
 
   #
@@ -103,7 +103,7 @@ Resources:
     Type: AWS::RDS::DBCluster
     DeletionPolicy: Delete
     Properties: 
-      DBClusterIdentifier: !Sub '${Prefix}-aurora-postgresql-cluster'
+      DBClusterIdentifier: !Sub '${NamePrefix}-aurora-postgresql-cluster'
       Engine: aurora-postgresql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql
       EngineMode: provisioned # provisioned , serverless , parallelquery , global , multimaster
       EngineVersion: '13.6'
@@ -123,10 +123,10 @@ Resources:
       # KmsKeyId: String
       VpcSecurityGroupIds: !Ref SecurityGroupIds
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # RDS - DBInstance (first)
@@ -136,7 +136,7 @@ Resources:
     DeletionPolicy: Delete
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
-      DBInstanceIdentifier: !Sub '${Prefix}-aurora-postgresql-instance-1'
+      DBInstanceIdentifier: !Sub '${NamePrefix}-aurora-postgresql-instance-1'
       Engine: aurora-postgresql
       # EngineVersion: '13.6'
       DBInstanceClass: db.r6g.large
@@ -152,10 +152,10 @@ Resources:
       # PerformanceInsightsKMSKeyId: String
       PerformanceInsightsRetentionPeriod: 7 # 7 , 731 (days)
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
   
   #
   # RDS - DBInstance (second)
@@ -165,7 +165,7 @@ Resources:
     DeletionPolicy: Delete
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
-      DBInstanceIdentifier: !Sub '${Prefix}-aurora-postgresql-instance-2'
+      DBInstanceIdentifier: !Sub '${NamePrefix}-aurora-postgresql-instance-2'
       Engine: aurora-postgresql
       # EngineVersion: '13.6'
       DBInstanceClass: db.r6g.large
@@ -181,7 +181,7 @@ Resources:
       # PerformanceInsightsKMSKeyId: String
       PerformanceInsightsRetentionPeriod: 7 # 7 , 731 (days)
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

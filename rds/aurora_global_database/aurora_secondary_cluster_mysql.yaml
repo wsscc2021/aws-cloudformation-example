@@ -10,20 +10,20 @@ Parameters:
     Description: GlobalClusterIdentifier
     Type: String
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -32,7 +32,7 @@ Resources:
   MonitoringRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: !Sub '${Prefix}-aurora-mysql-monitoring-role'
+      RoleName: !Sub '${NamePrefix}-aurora-mysql-monitoring-role'
       ManagedPolicyArns:
       - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
       AssumeRolePolicyDocument:
@@ -73,7 +73,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: !Sub '${Prefix}-aurora-mysql-subnetgroup'
+      DBSubnetGroupName: !Sub '${NamePrefix}-aurora-mysql-subnetgroup'
       SubnetIds: !Ref SubnetIds
 
   #
@@ -83,7 +83,7 @@ Resources:
     Type: AWS::RDS::DBCluster
     DeletionPolicy: Delete
     Properties: 
-      DBClusterIdentifier: !Sub '${Prefix}-aurora-mysql-cluster'
+      DBClusterIdentifier: !Sub '${NamePrefix}-aurora-mysql-cluster'
       GlobalClusterIdentifier: !Ref GlobalClusterIdentifier
       DBClusterParameterGroupName: !Ref DBClusterParameterGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
@@ -110,10 +110,10 @@ Resources:
       VpcSecurityGroupIds: !Ref SecurityGroupIds
       # DatabaseName: exampledb
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # RDS - DBInstance (first)
@@ -123,7 +123,7 @@ Resources:
     DeletionPolicy: Delete
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
-      DBInstanceIdentifier: !Sub '${Prefix}-aurora-mysql-instance-1'
+      DBInstanceIdentifier: !Sub '${NamePrefix}-aurora-mysql-instance-1'
       Engine: aurora-mysql
       # EngineVersion: 5.7.mysql_aurora.2.10.2
       DBInstanceClass: db.r6g.large
@@ -136,10 +136,10 @@ Resources:
       AutoMinorVersionUpgrade: true
       CopyTagsToSnapshot: true
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
       
   #
   # RDS - DBInstance (second)
@@ -149,7 +149,7 @@ Resources:
     DeletionPolicy: Delete
     Properties: 
       DBClusterIdentifier: !Ref DBCluster
-      DBInstanceIdentifier: !Sub '${Prefix}-aurora-mysql-instance-2'
+      DBInstanceIdentifier: !Sub '${NamePrefix}-aurora-mysql-instance-2'
       Engine: aurora-mysql
       # EngineVersion: 5.7.mysql_aurora.2.10.2
       DBInstanceClass: db.r6g.large
@@ -162,7 +162,7 @@ Resources:
       AutoMinorVersionUpgrade: true
       CopyTagsToSnapshot: true
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

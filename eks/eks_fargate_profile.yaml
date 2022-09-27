@@ -7,20 +7,20 @@ Parameters:
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -29,7 +29,7 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: !Sub '${Prefix}-eks-fargate-profile-role'
+      RoleName: !Sub '${NamePrefix}-eks-fargate-profile-role'
       # Description: description
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -53,10 +53,10 @@ Resources:
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
 
   #
@@ -65,7 +65,7 @@ Resources:
   FargateProfile:
     Type: AWS::EKS::FargateProfile
     Properties: 
-      FargateProfileName: !Sub '${Prefix}-eks-fargate-profile'
+      FargateProfileName: !Sub '${NamePrefix}-eks-fargate-profile'
       ClusterName: !Ref EKSClusterName
       PodExecutionRoleArn: !GetAtt Role.Arn
       Selectors: 
@@ -75,7 +75,7 @@ Resources:
               Value: 'true'
       Subnets: !Ref SubnetIds
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

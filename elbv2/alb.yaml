@@ -12,12 +12,12 @@ Parameters:
     Type: List<AWS::EC2::SecurityGroup::Id>
     Description: "The security group ids for application load balancer"
   
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
@@ -43,10 +43,10 @@ Resources:
       Protocol: HTTP # HTTP , HTTPS
       ProtocolVersion: HTTP1 # GRPC , HTTP1 , HTTP2
       Tags: 
-        - Key: ProjectName
-          Value: !Ref ProjectName
-        - Key: OwnerTeamName
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
       TargetGroupAttributes: 
         - Key: deregistration_delay.timeout_seconds
           Value: 30
@@ -69,10 +69,10 @@ Resources:
       SecurityGroups: !Ref SecurityGroupIds
       Subnets: !Ref SubnetIds
       Tags: 
-        - Key: ProjectName
-          Value: !Ref ProjectName
-        - Key: OwnerTeamName
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
       
   #
   # ELBv2 - Listener

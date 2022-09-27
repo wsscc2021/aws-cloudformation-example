@@ -9,20 +9,20 @@ Parameters:
   GlobalReplicationGroupId:
     Type: String
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -31,7 +31,7 @@ Resources:
   ElasticacheSubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
     Properties: 
-      CacheSubnetGroupName: !Sub '${Prefix}-redis-cluster-subnetgroup'
+      CacheSubnetGroupName: !Sub '${NamePrefix}-redis-cluster-subnetgroup'
       Description: This is redis cluster subnet group
       SubnetIds: !Ref SubnetIds
 
@@ -43,7 +43,7 @@ Resources:
     DeletionPolicy: Delete
     Properties: 
       GlobalReplicationGroupId: !Ref GlobalReplicationGroupId
-      ReplicationGroupId: !Sub '${Prefix}-redis-cluster'
+      ReplicationGroupId: !Sub '${NamePrefix}-redis-cluster'
       ReplicationGroupDescription: This is Elasticache Redis (cluster mode enabled)
       ReplicasPerNodeGroup: 2
       # Port: 6379
@@ -51,7 +51,7 @@ Resources:
       SecurityGroupIds: !Ref SecurityGroupIds
       MultiAZEnabled: true
       Tags:
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

@@ -5,21 +5,23 @@ Parameters:
 
   TargetVPC:
     Type: AWS::EC2::VPC::Id
-
-  ProjectName:
+  
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
+  
+  NamePrefix:
+    Type: String
+    Description: "The prefix of resource's Name tag"
+    Default: Unicorn
 
 Resources:
-  #
-  # VPC - PeeringConnection
-  #
   VpcPeeringConnection:
     Type: AWS::EC2::VPCPeeringConnection
     Properties: 
@@ -30,8 +32,8 @@ Resources:
       VpcId: !Ref SourceVPC
       Tags: 
         - Key: Name
-          Value: !Sub '${ProjectName}-vpc-peering'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-vpc-peering'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

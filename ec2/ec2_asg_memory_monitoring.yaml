@@ -22,16 +22,15 @@ Parameters:
     Description: "The AMI for launched instances"
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
-
 
 Resources:
   #
@@ -66,10 +65,10 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       Tags: 
-        - Key: ProjectName
-          Value: !Ref ProjectName
-        - Key: OwnerTeamName
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # IAM Instance Profile
@@ -121,18 +120,18 @@ Resources:
             Tags: 
             - Key: Name
               Value: !Sub "${AutoScalingGroupName}-ec2"
-            - Key: ProjectName
-              Value: !Ref ProjectName
-            - Key: OwnerTeamName
-              Value: !Ref OwnerTeamName
+            - Key: Project
+              Value: !Ref Project
+            - Key: Owner
+              Value: !Ref Owner
           - ResourceType: volume # instance, volume
             Tags: 
             - Key: Name
               Value: !Sub "${AutoScalingGroupName}-ec2"
-            - Key: ProjectName
-              Value: !Ref ProjectName
-            - Key: OwnerTeamName
-              Value: !Ref OwnerTeamName
+            - Key: Project
+              Value: !Ref Project
+            - Key: Owner
+              Value: !Ref Owner
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash -xe

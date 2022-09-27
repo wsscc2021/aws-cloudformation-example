@@ -6,20 +6,20 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -28,7 +28,7 @@ Resources:
   MonitoringRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: !Sub '${Prefix}-rds-postgresql-monitoring-role'
+      RoleName: !Sub '${NamePrefix}-rds-postgresql-monitoring-role'
       ManagedPolicyArns:
       - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
       AssumeRolePolicyDocument:
@@ -45,7 +45,7 @@ Resources:
   MasterUserSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: !Sub '${Prefix}-rds-postgresql-instance/postgres'
+      Name: !Sub '${NamePrefix}-rds-postgresql-instance/postgres'
       Description: 'This is secret of rds username and password'
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
@@ -93,7 +93,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: !Sub '${Prefix}-rds-postgresql-subnetgroup'
+      DBSubnetGroupName: !Sub '${NamePrefix}-rds-postgresql-subnetgroup'
       SubnetIds: !Ref SubnetIds
 
   #
@@ -103,7 +103,7 @@ Resources:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Delete
     Properties: 
-      DBInstanceIdentifier: !Sub '${Prefix}-rds-postgresql-instance'
+      DBInstanceIdentifier: !Sub '${NamePrefix}-rds-postgresql-instance'
       Engine: postgres # mysql , postgres , mariadb , aurora , aurora-mysql , aurora-postgresql ...
       EngineVersion: '14.2'
       DBInstanceClass: db.t4g.small
@@ -138,7 +138,7 @@ Resources:
       PubliclyAccessible: false
       VPCSecurityGroups: !Ref SecurityGroupIds
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

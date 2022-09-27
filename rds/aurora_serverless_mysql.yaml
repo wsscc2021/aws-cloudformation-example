@@ -6,20 +6,20 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:  
   #
@@ -28,7 +28,7 @@ Resources:
   MasterUserSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: !Sub '${Prefix}-aurora-mysql-serverless-cluster/admin'
+      Name: !Sub '${NamePrefix}-aurora-mysql-serverless-cluster/admin'
       Description: 'This is secret of rds username and password'
       GenerateSecretString:
         SecretStringTemplate: '{"username": "admin"}'
@@ -65,7 +65,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: !Sub '${Prefix}-aurora-mysql-serverless-subnetgroup'
+      DBSubnetGroupName: !Sub '${NamePrefix}-aurora-mysql-serverless-subnetgroup'
       SubnetIds: !Ref SubnetIds
 
   #
@@ -75,7 +75,7 @@ Resources:
     Type: 'AWS::RDS::DBCluster'
     DeletionPolicy: Delete
     Properties:
-      DBClusterIdentifier: !Sub '${Prefix}-aurora-mysql-serverless-cluster'
+      DBClusterIdentifier: !Sub '${NamePrefix}-aurora-mysql-serverless-cluster'
       Engine: aurora-mysql # aurora (mysql5.6) , aurora-mysql (mysql5.7) , aurora-postgresql
       EngineMode: serverless # provisioned , serverless , parallelquery , global , multimaster
       EngineVersion: '5.7.mysql_aurora.2.07.1'
@@ -97,7 +97,7 @@ Resources:
         MinCapacity: 2  # (postgres) 2 , 4 , 8 , 16 , 32 ,64 , 192 , 384
         SecondsUntilAutoPause: 300 # 300 ~ 86,400 (second)
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

@@ -2,21 +2,22 @@
 Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
+    Description: "The VPC id associated security group"
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 
 Resources:
@@ -26,16 +27,16 @@ Resources:
   App:
     Type: AWS::EC2::SecurityGroup
     Properties: 
-      GroupDescription: "This security group for attached App"
-      GroupName: !Sub '${Prefix}-app-sg'
+      GroupDescription: "The security group for attached App"
+      GroupName: !Sub '${NamePrefix}-app-sg'
       VpcId: !Ref VpcId
       Tags: 
         - Key: Name
-          Value: !Sub '${Prefix}-app-sg'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-app-sg'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
     
   #
   # Ingress Rules

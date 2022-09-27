@@ -6,20 +6,20 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -29,7 +29,7 @@ Resources:
     Type: AWS::MemoryDB::ParameterGroup
     Properties: 
       # Description: String
-      ParameterGroupName: !Sub '${Prefix}-memorydb-parametergroup'
+      ParameterGroupName: !Sub '${NamePrefix}-memorydb-parametergroup'
       Family: memorydb_redis6
       # Parameters: Json
 
@@ -40,7 +40,7 @@ Resources:
     Type: AWS::MemoryDB::SubnetGroup
     Properties: 
       # Description: String
-      SubnetGroupName: !Sub '${Prefix}-memorydb-subnetgroup'
+      SubnetGroupName: !Sub '${NamePrefix}-memorydb-subnetgroup'
       SubnetIds: !Ref SubnetIds
 
 
@@ -53,7 +53,7 @@ Resources:
     Properties: 
       ACLName: open-access
       AutoMinorVersionUpgrade: true
-      ClusterName:  !Sub '${Prefix}-memorydb-cluster'
+      ClusterName:  !Sub '${NamePrefix}-memorydb-cluster'
       # Description: String
       EngineVersion: '6.2'
       # KmsKeyId: String
@@ -70,7 +70,7 @@ Resources:
       # SnapshotArns: 
       #   - String
       Tags:
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

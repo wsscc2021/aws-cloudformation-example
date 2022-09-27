@@ -8,12 +8,12 @@ Parameters:
     Type: String
     Description: "The lambda function arn for lambda@edge, must be specified version"
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
@@ -122,7 +122,7 @@ Resources:
         # ViewerCertificate:
         #   CloudFrontDefaultCertificate: 'true'
       Tags: 
-        - Key: ProjectName
-          Value: !Ref ProjectName
-        - Key: OwnerTeamName
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

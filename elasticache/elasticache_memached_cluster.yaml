@@ -6,20 +6,20 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -41,7 +41,7 @@ Resources:
   ElasticacheSubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
     Properties: 
-      CacheSubnetGroupName: !Sub '${Prefix}-memcached-cluster-subnetgroup'
+      CacheSubnetGroupName: !Sub '${NamePrefix}-memcached-cluster-subnetgroup'
       Description: This is memcached subnet group
       SubnetIds: !Ref SubnetIds
 
@@ -52,7 +52,7 @@ Resources:
     Type: AWS::ElastiCache::CacheCluster
     DeletionPolicy: Delete
     Properties: 
-      ClusterName: !Sub '${Prefix}-memcached-cluster'
+      ClusterName: !Sub '${NamePrefix}-memcached-cluster'
       Engine: memcached # memcached | redis
       EngineVersion: '1.6.6' # aws elasticache describe-cache-engine-versions
       CacheNodeType: cache.m6g.large
@@ -64,7 +64,7 @@ Resources:
       AutoMinorVersionUpgrade: true
       VpcSecurityGroupIds: !Ref SecurityGroupIds
       Tags:
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

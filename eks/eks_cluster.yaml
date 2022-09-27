@@ -6,20 +6,20 @@ Parameters:
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -28,7 +28,7 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: !Sub '${Prefix}-eks-cluster-role'
+      RoleName: !Sub '${NamePrefix}-eks-cluster-role'
       Description: "This role for eks cluster"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -52,10 +52,10 @@ Resources:
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # KMS - Key
@@ -82,11 +82,11 @@ Resources:
       PendingWindowInDays: 7
       Tags: 
         - Key: Name
-          Value: !Sub '${Prefix}-eks-cluster'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-eks-cluster'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # EKS - Cluster
@@ -94,7 +94,7 @@ Resources:
   Cluster:
     Type: AWS::EKS::Cluster
     Properties: 
-      Name: !Sub '${Prefix}-eks-cluster'
+      Name: !Sub '${NamePrefix}-eks-cluster'
       Version: '1.21'
       RoleArn: !GetAtt Role.Arn
       EncryptionConfig: 
@@ -122,7 +122,7 @@ Resources:
             - Type: controllerManager
             - Type: scheduler
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

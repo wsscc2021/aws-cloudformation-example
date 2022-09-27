@@ -6,20 +6,20 @@ Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -28,7 +28,7 @@ Resources:
   MonitoringRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: !Sub '${Prefix}-rds-mysql-monitoring-role'
+      RoleName: !Sub '${NamePrefix}-rds-mysql-monitoring-role'
       ManagedPolicyArns:
       - 'arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole'
       AssumeRolePolicyDocument:
@@ -45,7 +45,7 @@ Resources:
   MasterUserSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: !Sub '${Prefix}-rds-mysql-cluster/admin'
+      Name: !Sub '${NamePrefix}-rds-mysql-cluster/admin'
       Description: 'This is secret of rds username and password'
       GenerateSecretString:
         SecretStringTemplate: '{"username": "admin"}'
@@ -93,7 +93,7 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: 'This is subnet group of example'
-      DBSubnetGroupName: !Sub '${Prefix}-rds-mysql-subnetgroup'
+      DBSubnetGroupName: !Sub '${NamePrefix}-rds-mysql-subnetgroup'
       SubnetIds: !Ref SubnetIds
 
   #
@@ -103,7 +103,7 @@ Resources:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Delete
     Properties: 
-      DBInstanceIdentifier: !Sub '${Prefix}-rds-mysql-instance'
+      DBInstanceIdentifier: !Sub '${NamePrefix}-rds-mysql-instance'
       Engine: mysql # mysql , mariadb, aurora , aurora-mysql , aurora-postgresql ...
       EngineVersion: '8.0.28'
       DBInstanceClass: db.t4g.small
@@ -141,10 +141,10 @@ Resources:
       PubliclyAccessible: false
       VPCSecurityGroups: !Ref SecurityGroupIds
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # RDS - Read Replica Instance
@@ -154,14 +154,14 @@ Resources:
     DeletionPolicy: Delete
     Properties:
       # DBClusterIdentifier: String
-      DBInstanceIdentifier: !Sub '${Prefix}-rds-mysql-instance-rr-1'
+      DBInstanceIdentifier: !Sub '${NamePrefix}-rds-mysql-instance-rr-1'
       SourceDBInstanceIdentifier: !Ref DBInstance
       DBInstanceClass: db.t4g.small
       StorageType: gp2
       # Iops: Integer
       MaxAllocatedStorage: '1000'
       Tags:
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

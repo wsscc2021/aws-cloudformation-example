@@ -8,12 +8,12 @@ Parameters:
     Type: List<AWS::EC2::Subnet::Id>
     Description: "The subnet ids for application load balancer"
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
@@ -37,10 +37,10 @@ Resources:
       Port: 80
       Protocol: TCP # TCP, UDP, TCP_UDP, TLS
       Tags: 
-        - Key: ProjectName
-          Value: !Ref ProjectName
-        - Key: OwnerTeamName
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
       TargetGroupAttributes: 
         - Key: deregistration_delay.timeout_seconds
           Value: 30
@@ -62,10 +62,10 @@ Resources:
       #     value: true
       Subnets: !Ref SubnetIds
       Tags: 
-        - Key: ProjectName
-          Value: !Ref ProjectName
-        - Key: OwnerTeamName
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
   
   #
   # ELBv2 - Network Load Balancer Listener

@@ -1,19 +1,19 @@
 
 Parameters:
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -27,11 +27,11 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-vpc'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-vpc'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # Internet Gateway
@@ -41,11 +41,11 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value:  !Sub '${Prefix}-igw'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value:  !Sub '${NamePrefix}-igw'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -65,11 +65,11 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-public-subnet-a'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-public-subnet-a'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   PublicSubnetB:
     Type: AWS::EC2::Subnet
@@ -80,11 +80,11 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-public-subnet-b'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-public-subnet-b'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   PublicSubnetC:
     Type: AWS::EC2::Subnet
@@ -95,11 +95,11 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-public-subnet-c'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-public-subnet-c'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # Private Subnet
@@ -113,11 +113,11 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-private-subnet-a'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-private-subnet-a'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
   
   PrivateSubnetB:
     Type: AWS::EC2::Subnet
@@ -128,11 +128,11 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-private-subnet-b'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-private-subnet-b'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   PrivateSubnetC:
     Type: AWS::EC2::Subnet
@@ -143,11 +143,11 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-private-subnet-c'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-private-subnet-c'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # Data Subnet
@@ -161,11 +161,11 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-data-subnet-a'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-data-subnet-a'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
   
   DataSubnetB:
     Type: AWS::EC2::Subnet
@@ -176,11 +176,11 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-data-subnet-b'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-data-subnet-b'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   DataSubnetC:
     Type: AWS::EC2::Subnet
@@ -191,11 +191,11 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-data-subnet-c'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-data-subnet-c'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # NAT Gateway - EIP
@@ -207,11 +207,11 @@ Resources:
       Domain: vpc
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-natgateway-a-eip'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-natgateway-a-eip'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   NatGatewayA:
     Type: AWS::EC2::NatGateway
@@ -220,11 +220,11 @@ Resources:
       SubnetId: !Ref PublicSubnetA
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-natgateway-a'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-natgateway-a'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   NatGatewayBEIP:
     Type: AWS::EC2::EIP
@@ -233,11 +233,11 @@ Resources:
       Domain: vpc
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-natgateway-b-eip'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-natgateway-b-eip'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   NatGatewayB:
     Type: AWS::EC2::NatGateway
@@ -246,11 +246,11 @@ Resources:
       SubnetId: !Ref PublicSubnetB
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-natgateway-b'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-natgateway-b'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   NatGatewayCEIP:
     Type: AWS::EC2::EIP
@@ -259,11 +259,11 @@ Resources:
       Domain: vpc
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-natgateway-c-eip'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-natgateway-c-eip'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   NatGatewayC:
     Type: AWS::EC2::NatGateway
@@ -272,11 +272,11 @@ Resources:
       SubnetId: !Ref PublicSubnetC
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-natgateway-c'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-natgateway-c'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # Public RouteTable
@@ -287,11 +287,11 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-public-rt'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-public-rt'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
@@ -328,11 +328,11 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-private-rt-a'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-private-rt-a'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   DefaultPrivateRouteA:
     Type: AWS::EC2::Route
@@ -353,11 +353,11 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-private-rt-b'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-private-rt-b'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   DefaultPrivateRouteB:
     Type: AWS::EC2::Route
@@ -378,11 +378,11 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-private-rt-c'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-private-rt-c'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   DefaultPrivateRouteC:
     Type: AWS::EC2::Route
@@ -406,11 +406,11 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub '${Prefix}-data-rt'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Sub '${NamePrefix}-data-rt'
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   DataSubnetARouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation

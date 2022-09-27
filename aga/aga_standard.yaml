@@ -1,11 +1,11 @@
 
 Parameters:
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
@@ -24,10 +24,10 @@ Resources:
       #   - String
       IpAddressType: IPV4 # DUAL_STACK | IPV4
       Tags: 
-        - Key: ProjectName
-          Value: !Ref ProjectName
-        - Key: OwnerTeamName
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   Listener:
     Type: AWS::GlobalAccelerator::Listener

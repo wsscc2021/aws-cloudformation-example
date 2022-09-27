@@ -13,20 +13,20 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
   
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  Prefix:
+  InstanceName:
     Type: String
-    Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Description: "The name(tag) of ec2 instance"
+    Default: Unicorn-app-ec2
 
 Resources:
   #
@@ -35,8 +35,8 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: !Sub '${Prefix}-ec2-role'
-      Description: 'The role of ec2 instance'
+      RoleName: !Sub '${InstanceName}-role'
+      Description: !Sub 'The role of ec2 instance, ${InstanceName}'
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -61,8 +61,10 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
   
   #
   # IAM Instance Profile
@@ -102,11 +104,11 @@ Resources:
       PropagateTagsToVolumeOnCreation: true
       Tags: 
         - Key: Name
-          Value: !Sub '${Prefix}-ec2'
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+          Value: !Ref InstanceName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash

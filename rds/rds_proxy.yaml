@@ -15,20 +15,20 @@ Parameters:
   DBInstanceIdentifier:
     Type: String
 
-  OwnerTeamName:
+  Owner:
     Type: String
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  ProjectName:
+  Project:
     Type: String
     Description: "The project name for provisioned this resources"
-    Default: wsscc2022
+    Default: Unicorn.Rental
 
-  Prefix:
+  NamePrefix:
     Type: String
     Description: "The prefix of resource's Name tag"
-    Default: useast1-wsscc2022
+    Default: Unicorn
 
 Resources:
   #
@@ -37,7 +37,7 @@ Resources:
   DBProxyRole:
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: !Sub '${Prefix}-rds-mysql-proxy-role'
+      RoleName: !Sub '${NamePrefix}-rds-mysql-proxy-role'
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -67,10 +67,10 @@ Resources:
       # ManagedPolicyArns: 
       #   - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
   
   #
   # RDS - DBProxy
@@ -78,7 +78,7 @@ Resources:
   DBProxy:
     Type: AWS::RDS::DBProxy
     Properties: 
-      DBProxyName: !Sub '${Prefix}-rds-mysql-proxy'
+      DBProxyName: !Sub '${NamePrefix}-rds-mysql-proxy'
       Auth: 
         - AuthScheme: SECRETS
           IAMAuth: DISABLED # DISABLED , REQUIRED
@@ -90,10 +90,10 @@ Resources:
       VpcSecurityGroupIds: !Ref SecurityGroupIds
       VpcSubnetIds: !Ref SubnetIds
       Tags: 
-        - Key: project
-          Value: !Ref ProjectName
-        - Key: owner:team
-          Value: !Ref OwnerTeamName
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # RDS - DBProxyTargetGroup
