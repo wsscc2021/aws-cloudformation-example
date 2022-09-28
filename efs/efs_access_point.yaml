@@ -48,6 +48,33 @@ Resources:
       # ProvisionedThroughputInMibps: Double
 
   #
+  # EFS - Access Point
+  #
+  AccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties: 
+      AccessPointTags: 
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
+        - Key: Name
+          Value: App1
+      # ClientToken: String
+      FileSystemId: !Ref FileSystem
+      PosixUser: 
+        Uid: "1000"
+        Gid: "1000"
+        # SecondaryGids: 
+        #   - String
+      RootDirectory: 
+        CreationInfo: 
+          OwnerGid: "1000"
+          OwnerUid: "1000"
+          Permissions: "0755"
+        Path: /app1
+  
+  #
   # EFS - MountTarget
   #
   MountTargetA:

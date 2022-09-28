@@ -46,7 +46,29 @@ Resources:
       PerformanceMode: generalPurpose # generalPurpose , maxIO
       ThroughputMode: bursting # bursting , provisioned
       # ProvisionedThroughputInMibps: Double
-
+      FileSystemPolicy:
+        Version: "2012-10-17"
+        Id: "EfsPolicy"
+        Statement:
+          - Sid: "PreventRootAccessByDefault"
+            Effect: "Allow"
+            Principal:
+              AWS: "*"
+            Action:
+              - "elasticfilesystem:ClientWrite"
+              - "elasticfilesystem:ClientMount"
+            Condition:
+              Bool:
+                "elasticfilesystem:AccessedViaMountTarget": "true"
+          - Sid: "DenyInsecureTransport"
+            Effect: "Deny"
+            Principal:
+              AWS: "*"
+            Action: "*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": "false"
+  
   #
   # EFS - MountTarget
   #
