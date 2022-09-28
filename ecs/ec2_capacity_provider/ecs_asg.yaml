@@ -1,17 +1,40 @@
 
 Parameters:
+  InstanceName:
+    Type: String
+    Description: "The name of instance created by auto scaling group"
+    Default: unicorn-ecs-workernode
+
+  ECSCluster:
+    Type: String
+    Description: "The name of ecs cluster, created not yet"
+
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
+    Description: "The Subnet Ids for launched instances"
 
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: "The Security Group Ids for launched instances"
 
   KeyPair:
     Type: AWS::EC2::KeyPair::KeyName
+    Description: "The Keypair for launched instances"
 
   AMI:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Description: "The AMI for launched instances"
     Default: '/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id'
+
+  Project:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: Unicorn.Rental
+
+  Owner:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
 
 Resources:
   #
@@ -20,8 +43,8 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      # RoleName: example-ec2-role
-      # Description: description
+      RoleName: !Sub '${InstanceName}-role'
+      Description: !Sub "The role for ${InstanceName}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -45,8 +68,10 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # IAM Instance Profile
@@ -66,7 +91,7 @@ Resources:
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties: 
-      LaunchTemplateName: example-ecs-asg-lt
+      LaunchTemplateName: !Ref InstanceName
       LaunchTemplateData: 
         BlockDeviceMappings: 
           - DeviceName: /dev/xvda
@@ -85,30 +110,43 @@ Resources:
         InstanceInitiatedShutdownBehavior: terminate # stop , terminate
         InstanceType: c5.large
         KeyName: !Ref KeyPair
-        # Monitoring: 
+        Monitoring: 
+          Enabled: true
         SecurityGroupIds: !Ref SecurityGroupIds
         TagSpecifications: 
           - ResourceType: instance # instance, volume
             Tags: 
             - Key: Name
-              Value: example-ecs-ec2
+              Value: !Ref InstanceName
+            - Key: Project
+              Value: !Ref Project
+            - Key: Owner
+              Value: !Ref Owner
           - ResourceType: volume # instance, volume
             Tags: 
             - Key: Name
-              Value: example-ecs-ec2
+              Value: !Ref InstanceName
+            - Key: Project
+              Value: !Ref Project
+            - Key: Owner
+              Value: !Ref Owner
         UserData:
           Fn::Base64: ### Bootstrapping container instances
             !Sub |
               #!/bin/bash
               cat <<'EOF' >> /etc/ecs/ecs.config
-              ECS_CLUSTER=example-ecs-cluster
+              ECS_CLUSTER=${ECSCluster}
               ECS_LOGLEVEL=info
               EOF
       TagSpecifications: 
         - ResourceType: launch-template
           Tags: 
-          - Key: Name
-            Value: example-ecs-asg-lt
+            - Key: Name
+              Value: !Ref InstanceName
+            - Key: Project
+              Value: !Ref Project
+            - Key: Owner
+              Value: !Ref Owner
 
   #
   # Auto Scaling Group
@@ -116,23 +154,23 @@ Resources:
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties: 
-      AutoScalingGroupName: example-ecs-asg
+      AutoScalingGroupName: !Ref InstanceName
       # CapacityRebalance: Boolean
       Cooldown: '120'
       DesiredCapacityType: units # units , vcpu , memory-mib
-      DesiredCapacity: '3'
-      MinSize: '3'
+      DesiredCapacity: '0'
+      MinSize: '0'
       MaxSize: '20'
       HealthCheckGracePeriod: 60
       HealthCheckType: EC2 # EC2 , ELB
-      NewInstancesProtectedFromScaleIn: true
+      NewInstancesProtectedFromScaleIn: false
       LaunchTemplate: 
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber # DefaultVersionNumber , LatestVersionNumber
       Tags: 
         - PropagateAtLaunch: true
           Key: Name
-          Value: example-ecs-ec2
+          Value: !Ref InstanceName
       # TargetGroupARNs: 
       #   - String
       VPCZoneIdentifier: !Ref SubnetIds

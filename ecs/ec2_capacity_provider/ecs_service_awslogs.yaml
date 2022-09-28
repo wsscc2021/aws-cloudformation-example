@@ -1,22 +1,38 @@
 
 Parameters:
   ClusterName:
-    Description: ex, example-ecs-cluster
     Type: String
+    Description: "The ecs cluster name for running task"
   
+  TaskName:
+    Type: String
+    Description: "The task name for running your application"
+
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: "The security group ids for attached your task"
   
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
+    Description: "The subnet ids for locate your task"
 
   TargetGroupArn:
-    Description: ex, arn:aws:elasticloadbalancing:us-east-1:242593025403:targetgroup/foo-webapp-tg/b3cb1fa82626816d
     Type: String
+    Description: "The target group arn for attached your task"
 
   CapacityProvider:
-    Description: ex, example-ecs-cluster-EC2CapacityProvider-QWqu8ZG9Rvfl
     Type: String
+    Description: "ex, example-ecs-cluster-EC2CapacityProvider-QWqu8ZG9Rvfl"
+
+  Project:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: Unicorn.Rental
+
+  Owner:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
 
 Resources:
   #
@@ -25,8 +41,8 @@ Resources:
   TaskExecutionRole:
     Type: AWS::IAM::Role
     Properties: 
-      # RoleName: ecs-task-execution-role
-      # Description: description
+      RoleName: !Sub '${TaskName}-execution-role'
+      Description: !Sub "The task execution role for ${TaskName}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -49,8 +65,10 @@ Resources:
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # IAM Role (for TaskRole)
@@ -58,8 +76,8 @@ Resources:
   TaskRole:
     Type: AWS::IAM::Role
     Properties: 
-      # RoleName: ecs-task-execution-role
-      # Description: description
+      RoleName: !Sub '${TaskName}-role'
+      Description: !Sub "The task role for ${TaskName}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -82,8 +100,10 @@ Resources:
       # ManagedPolicyArns: 
       #   - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # CloudwatchLogs - Log Group
@@ -91,7 +111,7 @@ Resources:
   CloudwatchLogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
-      LogGroupName: /ecs/application/foo-webapp
+      LogGroupName: !Sub '/ecs/application/${TaskName}'
       RetentionInDays: 14
 
   #
@@ -101,7 +121,7 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     UpdateReplacePolicy: Retain
     Properties: 
-      Family: foo-webapp
+      Family: !Ref TaskName
       ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
       TaskRoleArn: !GetAtt TaskRole.Arn
       NetworkMode: awsvpc # awsvpc | bridge | host | none
@@ -122,7 +142,7 @@ Resources:
       ContainerDefinitions: 
         - 
           Name: webapp
-          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/foo-api:v2'
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/stress:20220927111338'
           Cpu: 768
           Memory: 1536
           MemoryReservation: 1536
@@ -133,7 +153,7 @@ Resources:
               HostPort: 5000
               Protocol: tcp # tcp | udp
           HealthCheck: 
-            Command: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1" ]
+            Command: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/healthcheck || exit 1" ]
             Interval: 15
             Retries: 3
             StartPeriod: 60
@@ -174,7 +194,7 @@ Resources:
   Service:
     Type: AWS::ECS::Service
     Properties: 
-      ServiceName: foo-webapp-service
+      ServiceName: !Ref TaskName
       Cluster: !Ref ClusterName
       TaskDefinition: !Ref TaskDefinition
       CapacityProviderStrategy: 

@@ -2,6 +2,21 @@
 Parameters:
   AutoScalingGroupArn:
     Type: String
+    Description: "The AutoScalingGroup Arn attached ecs cluster"
+
+  ECSCluster:
+    Type: String
+    Description: "The name of ecs cluster, will created"
+
+  Project:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: Unicorn.Rental
+
+  Owner:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
 
 Resources:
   #
@@ -20,8 +35,11 @@ Resources:
           TargetCapacity: 100 # 1 ~ 100 (%)
         ManagedTerminationProtection: DISABLED # DISABLED | ENABLED
       # Name: String
-      # Tags: 
-      #   - Tag
+      Tags: 
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
   
   #
   # ECS - Cluster
@@ -29,7 +47,7 @@ Resources:
   Cluster:
     Type: AWS::ECS::Cluster
     Properties: 
-      ClusterName: example-ecs-cluster
+      ClusterName: !Ref ECSCluster
       CapacityProviders: 
         - !Ref EC2CapacityProvider
       ClusterSettings: 
@@ -42,3 +60,8 @@ Resources:
         - CapacityProvider: !Ref EC2CapacityProvider
           Weight: 100 # 1 ~ 1000
           Base: 0
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner

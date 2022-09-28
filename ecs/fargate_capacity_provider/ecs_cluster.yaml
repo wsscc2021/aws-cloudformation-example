@@ -1,4 +1,19 @@
 
+Parameters:
+  ECSCluster:
+    Type: String
+    Description: "The name of ecs cluster, will created"
+
+  Project:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: Unicorn.Rental
+
+  Owner:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
 Resources:
   #
   # ECS - Cluster
@@ -6,7 +21,7 @@ Resources:
   Cluster:
     Type: AWS::ECS::Cluster
     Properties: 
-      ClusterName: example-ecs-fargate-cluster
+      ClusterName: !Ref ECSCluster
       CapacityProviders: # FARGATE | FARGATE_SPOT
         - FARGATE
       ClusterSettings: 
