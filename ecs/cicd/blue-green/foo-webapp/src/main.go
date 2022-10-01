@@ -10,7 +10,7 @@ import (
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", fooApiHandler)
-	mux.HandleFunc("/health", healthApiHandler)
+	mux.HandleFunc("/healthcheck", healthApiHandler)
 	http.ListenAndServe(":5000", handlers.CombinedLoggingHandler(os.Stdout, mux))
 }
 

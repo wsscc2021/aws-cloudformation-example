@@ -1,0 +1,36 @@
+
+Parameters:
+  ECSCluster:
+    Type: String
+    Description: "The name of ecs cluster, will created"
+
+  Project:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: Worldskills.Korea
+
+  Owner:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+Resources:
+  #
+  # ECS - Cluster
+  #
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties: 
+      ClusterName: !Ref ECSCluster
+      CapacityProviders: # FARGATE | FARGATE_SPOT
+        - FARGATE
+      ClusterSettings: 
+        - Name: containerInsights
+          Value: enabled
+      Configuration: 
+        ExecuteCommandConfiguration:
+          Logging: DEFAULT # DEFAULT | NONE | OVERRIDE
+      DefaultCapacityProviderStrategy: 
+        - CapacityProvider: FARGATE
+          Weight: 100 # 1 ~ 1000
+          Base: 0

@@ -12,6 +12,10 @@ Parameters:
     Description: 'The Listener ARN of elb'
     Type: String
 
+  CodeDeployApplicationName:
+    Type: String
+    Description: "The name of codedeploy application"
+
   # TestListenerArn:
   #   Description: 'The Test Listener ARN of elb'
   #   Type: String
@@ -24,6 +28,16 @@ Parameters:
     Description: 'The name of target group 2'
     Type: String
 
+  Project:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: Unicorn.Rental
+
+  Owner:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
 Resources:
   #
   # CodeDeploy - Application
@@ -31,20 +45,22 @@ Resources:
   Application:
     Type: AWS::CodeDeploy::Application
     Properties: 
-      ApplicationName: 'foo-webapp'
+      ApplicationName: !Ref CodeDeployApplicationName
       ComputePlatform: ECS # ECS | Lambda | Server
       Tags: 
-        - Key: key01
-          Value: value01
-
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
+  
   #
   # IAM Role
   #
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      # RoleName: example-ec2-role
-      # Description: description
+      RoleName: !Sub '${CodeDeployApplicationName}-codedeploy-role'
+      Description: !Sub "The codedeploy role, ${CodeDeployApplicationName}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -68,8 +84,10 @@ Resources:
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
   
   #
   # CodeDeploy - Deployment Config
@@ -94,7 +112,7 @@ Resources:
   DeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
     Properties: 
-      # DeploymentGroupName: 'foo-webapp'
+      DeploymentGroupName: !Sub '${ECSClusterName}-${ECSServiceName}'
       ApplicationName: !Ref Application
       AutoRollbackConfiguration: 
         Enabled: true

@@ -1,6 +1,6 @@
 
 Parameters:
-  ProjectName:
+  CodeBuildProjectName:
     Description: 'The project name of CodeBuild'
     Type: String
 
@@ -20,6 +20,16 @@ Parameters:
     Description: 'The repository name of ECR'
     Type: String
 
+  Project:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: Unicorn.Rental
+
+  Owner:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
 Resources:
   #
   # IAM - Role
@@ -27,8 +37,8 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      # RoleName: example-ec2-role
-      # Description: description
+      RoleName: !Sub '${CodeBuildProjectName}-codebuild-role'
+      Description: !Sub "The role for Codebuild, ${CodeBuildProjectName}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -85,7 +95,7 @@ Resources:
                   - 'codebuild:UpdateReport'
                   - 'codebuild:BatchPutTestCases'
                   - 'codebuild:BatchPutCodeCoverages'
-                Resource: !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${ProjectName}-*'
+                Resource: !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${CodeBuildProjectName}-*'
         - 
           PolicyName: ecr
           PolicyDocument:
@@ -104,8 +114,10 @@ Resources:
       #   - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
       #   - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
 
   #
   # Cloudwatch - Log Group
@@ -113,16 +125,16 @@ Resources:
   BuildProjectLogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
-      LogGroupName: !Sub '/aws/codebuild/${ProjectName}'
+      LogGroupName: !Sub '/aws/codebuild/${CodeBuildProjectName}'
       RetentionInDays: 1
 
   #
   # Codebuild - Project
   #
-  Project:
+  CodebuildProject:
     Type: AWS::CodeBuild::Project
     Properties: 
-      Name: !Ref ProjectName
+      Name: !Ref CodeBuildProjectName
       ServiceRole: !GetAtt Role.Arn
       BadgeEnabled: true
       Artifacts: 
@@ -156,9 +168,11 @@ Resources:
         Type: CODECOMMIT
         Location: !Sub 'https://git-codecommit.${AWS::Region}.amazonaws.com/v1/repos/${CodeCommitRepositoryName}'
       SourceVersion: !Sub 'refs/heads/${CodeCommitBranchName}'
-      # Tags: 
-      #   - Key: key01
-      #     Value: value01
+      Tags: 
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
       Visibility: PRIVATE
       # VpcConfig: 
       #   SecurityGroupIds: !Ref SecurityGroupIds

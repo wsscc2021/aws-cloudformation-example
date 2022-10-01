@@ -1,0 +1,272 @@
+
+Parameters:
+  ClusterName:
+    Type: String
+    Description: "The ecs cluster name for running task"
+  
+  TaskName:
+    Type: String
+    Description: "The task name for running your application"
+
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: "The security group ids for attached your task"
+  
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: "The subnet ids for locate your task"
+
+  TargetGroupArn:
+    Type: String
+    Description: "The target group arn for attached your task"
+
+  CapacityProvider:
+    Type: String
+    Description: "ex, example-ecs-cluster-EC2CapacityProvider-QWqu8ZG9Rvfl"
+
+  Project:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: Unicorn.Rental
+
+  Owner:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+
+Resources:
+  #
+  # IAM Role (for TaskExecutionRole)
+  #
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: !Sub '${TaskName}-execution-role'
+      Description: !Sub "The task execution role for ${TaskName}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+      # Policies: 
+      #   - PolicyName: dynamodb-query
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'dynamodb:Query'
+      #             - 'dynamodb:Scan'
+      #           Resource: '*'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags: 
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
+
+  #
+  # IAM Role (for TaskRole)
+  #
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: !Sub '${TaskName}-role'
+      Description: !Sub "The task role for ${TaskName}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+      # Policies: 
+      #   - PolicyName: dynamodb-query
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement:
+      #         - Effect: Allow
+      #           Action:
+      #             - 'dynamodb:Query'
+      #             - 'dynamodb:Scan'
+      #           Resource: '*'
+      # ManagedPolicyArns: 
+      #   - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags: 
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
+
+  #
+  # CloudwatchLogs - Log Group
+  #
+  CloudwatchLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Sub '/ecs/application/${TaskName}'
+      RetentionInDays: 14
+
+  #
+  # ECS - Task Definition
+  #
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    UpdateReplacePolicy: Retain
+    Properties: 
+      Family: !Ref TaskName
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      NetworkMode: awsvpc # awsvpc | bridge | host | none
+      RequiresCompatibilities: # EC2 | FARGATE | EXTERNAL
+        - EC2
+      Cpu: 768
+      Memory: 1536
+      # EphemeralStorage: 
+      #   EphemeralStorage
+      # PlacementConstraints: 
+      #   - TaskDefinitionPlacementConstraint
+      # ProxyConfiguration: # app mesh
+      #   ProxyConfiguration
+      # RuntimePlatform: 
+      #   RuntimePlatform
+      # Volumes: 
+      #   - Volume
+      ContainerDefinitions: 
+        - 
+          Name: webapp
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/stress:20220927111338'
+          Cpu: 768
+          Memory: 1536
+          MemoryReservation: 1536
+          Essential: true
+          Privileged: false
+          PortMappings: 
+            - ContainerPort: 5000
+              HostPort: 5000
+              Protocol: tcp # tcp | udp
+          HealthCheck: 
+            Command: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/healthcheck || exit 1" ]
+            Interval: 15
+            Retries: 3
+            StartPeriod: 60
+            Timeout: 5
+          LogConfiguration: 
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudwatchLogGroup
+              awslogs-region: !Ref AWS::Region
+          # FirelensConfiguration: 
+          #   FirelensConfiguration
+          # EntryPoint: 
+          #   - String
+          # Command: # CMD
+          #   - String
+          # Environment: 
+          #   - KeyValuePair
+          # EnvironmentFiles: 
+          #   - EnvironmentFile
+          # MountPoints: 
+          #   - MountPoint
+          # RepositoryCredentials: 
+          #   RepositoryCredentials
+          # Secrets: 
+          #   - Secret
+          # StartTimeout: Integer
+          # StopTimeout: Integer
+          # SystemControls: 
+          #   - SystemControl
+          # User: String
+          # VolumesFrom: 
+          #   - VolumeFrom
+          # WorkingDirectory: String
+
+  #
+  # ECS -Service
+  #
+  Service:
+    Type: AWS::ECS::Service
+    Properties: 
+      ServiceName: !Ref TaskName
+      Cluster: !Ref ClusterName
+      TaskDefinition: !Ref TaskDefinition
+      CapacityProviderStrategy: 
+        - Base: 0
+          CapacityProvider: !Ref CapacityProvider
+          Weight: 100
+      DeploymentController: 
+        Type: CODE_DEPLOY # ECS | CODE_DEPLOY | EXTERNAL
+      # DeploymentConfiguration:  # Only *ECS
+      #   DeploymentCircuitBreaker: 
+      #     Enable: true
+      #     Rollback: true
+      #   MaximumPercent: 200
+      #   MinimumHealthyPercent: 100
+      DesiredCount: 3
+      EnableECSManagedTags: true
+      EnableExecuteCommand: true
+      # LaunchType: EC2 # EC2 | EXTERNAL | FARGATE
+      LoadBalancers: 
+        - ContainerName: webapp
+          ContainerPort: 5000
+          # LoadBalancerName: !Ref LoadBalancerName
+          TargetGroupArn: !Ref TargetGroupArn
+      # HealthCheckGracePeriodSeconds: 60
+      NetworkConfiguration: 
+        AwsvpcConfiguration: 
+          AssignPublicIp: DISABLED # DISABLED | ENABLED
+          SecurityGroups: !Ref SecurityGroupIds
+          Subnets: !Ref SubnetIds
+      # PlacementConstraints: 
+      #   - PlacementConstraint
+      PlacementStrategies: 
+        - 
+          Field: "attribute:ecs.availability-zone"
+          Type: "spread"
+        - 
+          Field: "instanceId"
+          Type: "spread"
+      # PlatformVersion: String
+      # PropagateTags: String
+      # Role: String
+      # SchedulingStrategy: String
+      # ServiceRegistries: # CloudMap
+      #   - ServiceRegistry
+
+  #
+  # Application Auto Scaling - Scalable Target
+  #
+  ScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties: 
+      MaxCapacity: 60
+      MinCapacity: 3
+      ResourceId: !Join ['/', ['service', !Ref ClusterName, !GetAtt Service.Name]]
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService'
+      ScalableDimension: ecs:service:DesiredCount
+      # ScheduledActions: 
+      #   - ScheduledAction
+      ServiceNamespace: ecs
+      # SuspendedState: 
+      #   SuspendedState
+  
+  #
+  # Application Auto Scaling - ScalingPolicy
+  #
+  ScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: ECS-TargetTracking-ScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        TargetValue: 60.0

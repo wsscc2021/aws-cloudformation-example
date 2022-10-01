@@ -1,4 +1,19 @@
 
+Parameters:
+  Project:
+    Type: String
+    Description: "The project name for provisioned this resources"
+    Default: Unicorn.Rental
+
+  Owner:
+    Type: String
+    Description: "The team name for owned this resources"
+    Default: TeamKorea
+  
+  RepositoryName:
+    Type: String
+    Description: "The repository name for codecommit"
+
 Resources:
   #
   # CodeCommit - Repository
@@ -9,9 +24,11 @@ Resources:
       # Code: 
       #   Code
       RepositoryDescription: 'This is repository of codecommit for source code'
-      RepositoryName: foo-webapp
+      RepositoryName: !Ref RepositoryName
       # Triggers: 
       #   - RepositoryTrigger
       Tags: 
-        - Key: key01
-          Value: value01
+        - Key: Project
+          Value: !Ref Project
+        - Key: Owner
+          Value: !Ref Owner
