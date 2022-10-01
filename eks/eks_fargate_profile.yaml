@@ -6,6 +6,11 @@ Parameters:
 
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
+    Description: "The Subnet Ids for fargate container"
+
+  FargateProfileName:
+    Type: String
+    Description: "The name of fargate profile"
 
   Project:
     Type: String
@@ -17,11 +22,6 @@ Parameters:
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  NamePrefix:
-    Type: String
-    Description: "The prefix of resource's Name tag"
-    Default: Unicorn
-
 Resources:
   #
   # IAM Role (for pod execution)
@@ -29,8 +29,8 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: !Sub '${NamePrefix}-eks-fargate-profile-role'
-      # Description: description
+      RoleName: !Sub '${FargateProfileName}-fargate-execution-role'
+      Description: "The role for fargate profile"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -65,7 +65,7 @@ Resources:
   FargateProfile:
     Type: AWS::EKS::FargateProfile
     Properties: 
-      FargateProfileName: !Sub '${NamePrefix}-eks-fargate-profile'
+      FargateProfileName: !Ref FargateProfileName
       ClusterName: !Ref EKSClusterName
       PodExecutionRoleArn: !GetAtt Role.Arn
       Selectors: 

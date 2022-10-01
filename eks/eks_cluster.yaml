@@ -2,9 +2,11 @@
 Parameters:
   SecurityGroupIds:
     Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: "The Security Group Ids for eks cluster"
 
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
+    Description: "The Subnet Ids for eks cluster api endpoint"
 
   Project:
     Type: String
@@ -16,10 +18,9 @@ Parameters:
     Description: "The team name for owned this resources"
     Default: TeamKorea
 
-  NamePrefix:
+  ClusterName:
     Type: String
-    Description: "The prefix of resource's Name tag"
-    Default: Unicorn
+    Description: "The name of eks cluster"
 
 Resources:
   #
@@ -28,7 +29,7 @@ Resources:
   Role:
     Type: AWS::IAM::Role
     Properties: 
-      RoleName: !Sub '${NamePrefix}-eks-cluster-role'
+      RoleName: !Sub '${ClusterName}-role'
       Description: "This role for eks cluster"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -82,7 +83,7 @@ Resources:
       PendingWindowInDays: 7
       Tags: 
         - Key: Name
-          Value: !Sub '${NamePrefix}-eks-cluster'
+          Value: !Ref ClusterName
         - Key: Project
           Value: !Ref Project
         - Key: Owner
@@ -94,8 +95,8 @@ Resources:
   Cluster:
     Type: AWS::EKS::Cluster
     Properties: 
-      Name: !Sub '${NamePrefix}-eks-cluster'
-      Version: '1.21'
+      Name: !Ref ClusterName
+      Version: '1.22'
       RoleArn: !GetAtt Role.Arn
       EncryptionConfig: 
         - Provider: 

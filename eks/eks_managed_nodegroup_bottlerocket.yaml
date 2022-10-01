@@ -112,19 +112,6 @@ Resources:
                 Value: !Ref Project
               - Key: Owner
                 Value: !Ref Owner
-        UserData:
-          Fn::Base64:
-            !Sub |
-              MIME-Version: 1.0
-              Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
-              
-              --==MYBOUNDARY==
-              Content-Type: text/x-shellscript; charset="us-ascii"
-              
-              #!/bin/bash
-              echo "Running custom user data script"
-
-              --==MYBOUNDARY==--
 
   #
   # EKS - Managed Node Group
@@ -133,7 +120,7 @@ Resources:
     Type: AWS::EKS::Nodegroup
     Properties: 
       NodegroupName: !Ref NodeGroupName
-      AmiType: AL2_x86_64 # AL2_ARM_64 | AL2_x86_64 | AL2_x86_64_GPU | BOTTLEROCKET_ARM_64 | BOTTLEROCKET_x86_64 | CUSTOM
+      AmiType: BOTTLEROCKET_x86_64 # AL2_ARM_64 | AL2_x86_64 | AL2_x86_64_GPU | BOTTLEROCKET_ARM_64 | BOTTLEROCKET_x86_64 | CUSTOM
       CapacityType: ON_DEMAND # ON_DEMAND | SPOT
       ClusterName: !Ref ClusterName
       ForceUpdateEnabled: false
@@ -154,8 +141,8 @@ Resources:
         Project: !Ref Project
         Owner: !Ref Owner
       # Labels:
-      #   Management: Tools
+      #   Management: Apps
       Taints: 
         - Effect: NO_SCHEDULE # NO_EXECUTE | NO_SCHEDULE | PREFER_NO_SCHEDULE
           Key: Management
-          Value: Tools
+          Value: Apps
