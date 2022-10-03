@@ -96,7 +96,7 @@ Resources:
     Type: AWS::EKS::Cluster
     Properties: 
       Name: !Ref ClusterName
-      Version: '1.22'
+      Version: '1.23'
       RoleArn: !GetAtt Role.Arn
       EncryptionConfig: 
         - Provider: 
@@ -109,9 +109,9 @@ Resources:
         # ServiceIpv6Cidr: String
       ResourcesVpcConfig: 
         EndpointPrivateAccess: true
-        EndpointPublicAccess: true
-        PublicAccessCidrs: 
-          - 0.0.0.0/0
+        EndpointPublicAccess: false
+        # PublicAccessCidrs: 
+        #   - 0.0.0.0/0
         SecurityGroupIds: !Ref SecurityGroupIds
         SubnetIds: !Ref SubnetIds
       Logging: 
